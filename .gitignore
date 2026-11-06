@@ -1,0 +1,33 @@
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment variables & Secret Keys (Bảo mật)
+*.env
+*.env.*
+!.env.example
+
+# Node.js / Backend
+backend/node_modules/
+backend/dist/
+backend/npm-debug.log*
+backend/yarn-debug.log*
+backend/yarn-error.log*
+
+# Flutter / Mobile
+mobile/.dart_tool/
+mobile/.flutter-plugins
+mobile/.flutter-plugins-dependencies
+mobile/.packages
+mobile/.pub-cache/
+mobile/.pub/
+mobile/build/
+mobile/ios/Flutter/Generated.xcconfig
+mobile/android/local.properties
+mobile/android/.gradle/
+
+# IDEs
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
