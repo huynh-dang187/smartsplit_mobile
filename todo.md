@@ -31,7 +31,7 @@
   - Tổng tiền `subtotalAmount`, `totalAmount`.
 - [x] **Barrel Export** ([`backend/src/models/index.ts`](./backend/src/models/index.ts)): Gom export toàn bộ models và interfaces.
 
-### 3. Zod Schemas — Kiểm tra tính hợp lệ dữ liệu (Mục 3 Contract)
+### 3. Zod Schemas — Kiểm tra tính hợp lệ dữ liệu (Mục 3 Contract & Bổ sung)
 - [x] **Auth Schemas** ([`backend/src/schemas/auth.schema.ts`](./backend/src/schemas/auth.schema.ts)):
   - `BankInfoSchema`: Kiểm tra thông tin ngân hàng (`bankBin`, `bankShortName`, `accountNo`, `accountName`).
   - `RegisterSchema`: Kiểm tra đăng ký (tên, email chuẩn, password >= 6 ký tự, `bankInfo` optional).
@@ -49,23 +49,55 @@
   - Export các type suy luận TypeScript (`ParsedReceiptItem`, `ParsedReceipt`, `CreateExpensePayload`).
 - [x] **Barrel Export Schemas** ([`backend/src/schemas/index.ts`](./backend/src/schemas/index.ts)): Re-export toàn bộ schemas và types.
 
-### 4. Kiểm thử & Đảm bảo chất lượng (Verification)
+### 4. Dịch vụ & Thuật toán cốt lõi (Core Services - Mục 4 Contract)
+- [x] **Split Calculator Service** ([`backend/src/services/splitCalculator.service.ts`](./backend/src/services/splitCalculator.service.ts)):
+  - Hàm `calculateProRataShares`: Phân bổ chi phí món gốc $B_u$, phụ phí ròng $E_u$, làm tròn VNĐ số nguyên (`Math.round`), bù sai số lệch $\Delta$ vào người trả tiền (`paidBy`).
+  - Hàm `simplifyGroupDebts`: Thuật toán tham lam (Greedy) khớp chủ nợ lớn nhất với con nợ lớn nhất, rút gọn đồ thị nợ chéo về số giao dịch tối thiểu.
+  - Test script ([`backend/src/test-calculator.ts`](./backend/src/test-calculator.ts)) kiểm thử thành công 100% cả 2 kịch bản:
+    1. Chia bill 110.000đ cho 3 người (A, B, C): A trả tiền chịu 36.666đ, B chịu 36.667đ, C chịu 36.667đ (Tổng tròn 110.000đ).
+    2. Rút gọn nợ bắc cầu A ➔ B ➔ C thành 1 giao dịch trực tiếp: A trả C 100.000đ.
+
+### 5. Kiểm thử & Đảm bảo chất lượng (Verification)
 - [x] Chạy script kiểm thử khởi tạo đối tượng Document và parse dữ liệu Zod thành công 100%.
+- [x] Chạy script kiểm thử thuật toán Pro-rata và rút gọn nợ (`test-calculator.ts`) đạt 100% tiêu chí nghiệm thu.
 - [x] Kiểm tra TypeScript compiler (`npx tsc --noEmit`) đạt 0 lỗi.
+
+---
+
+## 🧭 CẨM NANG KIẾN TRÚC & LUỒNG XỬ LÝ (CHEST SHEET)
+
+Trình tự đi qua các folder khi 1 Request gửi từ Flutter tới Server:
+
+```
+Flutter Client Request
+  │
+  ▼
+1. routes/        👉 [Lễ tân]: Ánh xạ URL (VD: POST /api/groups) tới Controller tương ứng.
+  │
+  ▼
+2. middlewares/   👉 [Bảo vệ]: Soát token JWT & chạy Zod validation từ thư mục schemas/.
+  │
+  ▼
+3. controllers/   👉 [Tiếp tân]: Bóc tách req.body, gọi Service xử lý, trả res.json chuẩn format contract.
+  │
+  ▼
+4. services/      👉 [Thợ chính]: Chứa toàn bộ não bộ tính toán (Pro-rata, Rút gọn nợ, Gemini AI).
+  │
+  ▼
+5. models/        👉 [Két sắt]: Thực thể Mongoose Document lưu trữ dữ liệu vào MongoDB.
+```
 
 ---
 
 ## 📋 CÁC BƯỚC TIẾP THEO CẦN LÀM (TODO)
 
 ### Giai đoạn 1: Hoàn thiện Backend Core
-- [ ] **Core Business Services**:
-  - `src/services/splitCalculator.service.ts`:
-    - Thuật toán Pro-rata tính toán chia tiền món gốc + phân bổ thuế, phí, voucher và bù sai số làm tròn vào `paidBy`.
-    - Thuật toán Greedy Debt Simplification rút gọn đồ thị nợ chéo về số giao dịch tối thiểu.
+- [ ] **Core Business Services còn lại**:
   - `src/services/aiScanner.service.ts`:
     - Tích hợp Gemini 1.5 Flash / Gemini Vision (`@google/genai`) bóc tách ảnh hóa đơn thành JSON theo `ParsedReceiptSchema`.
 - [ ] **Middlewares**:
   - `src/middlewares/auth.middleware.ts`: Xác thực JSON Web Token (JWT).
+  - `src/middlewares/validate.middleware.ts`: Middleware bọc Zod Schema tự động bắt lỗi VALIDATION_ERROR.
   - `src/middlewares/error.middleware.ts`: Bắt lỗi tập trung theo format chuẩn ở Mục 1 Contract (`success`, `message`, `errorCode`, `errors`).
   - `src/middlewares/upload.middleware.ts`: Multer xử lý nhận file ảnh hóa đơn từ mobile.
 - [ ] **Controllers & Routes**:
