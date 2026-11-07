@@ -49,17 +49,25 @@
   - Export các type suy luận TypeScript (`ParsedReceiptItem`, `ParsedReceipt`, `CreateExpensePayload`).
 - [x] **Barrel Export Schemas** ([`backend/src/schemas/index.ts`](./backend/src/schemas/index.ts)): Re-export toàn bộ schemas và types.
 
-### 4. Dịch vụ & Thuật toán cốt lõi (Core Services - Mục 4 Contract)
+### 4. Dịch vụ & Thuật toán cốt lõi (Core Services - Mục 3 & 4 Contract)
 - [x] **Split Calculator Service** ([`backend/src/services/splitCalculator.service.ts`](./backend/src/services/splitCalculator.service.ts)):
   - Hàm `calculateProRataShares`: Phân bổ chi phí món gốc $B_u$, phụ phí ròng $E_u$, làm tròn VNĐ số nguyên (`Math.round`), bù sai số lệch $\Delta$ vào người trả tiền (`paidBy`).
   - Hàm `simplifyGroupDebts`: Thuật toán tham lam (Greedy) khớp chủ nợ lớn nhất với con nợ lớn nhất, rút gọn đồ thị nợ chéo về số giao dịch tối thiểu.
   - Test script ([`backend/src/test-calculator.ts`](./backend/src/test-calculator.ts)) kiểm thử thành công 100% cả 2 kịch bản:
     1. Chia bill 110.000đ cho 3 người (A, B, C): A trả tiền chịu 36.666đ, B chịu 36.667đ, C chịu 36.667đ (Tổng tròn 110.000đ).
     2. Rút gọn nợ bắc cầu A ➔ B ➔ C thành 1 giao dịch trực tiếp: A trả C 100.000đ.
+- [x] **AI Receipt Scanner Service** ([`backend/src/services/aiScanner.service.ts`](./backend/src/services/aiScanner.service.ts)):
+  - Tích hợp SDK `@google/genai` (`GoogleGenAI`, `Type`) với model `gemini-2.5-flash`.
+  - Hàm `scanReceiptWithAI`: Bóc tách ảnh hóa đơn đa phương thức với `responseMimeType: 'application/json'` và `responseSchema`.
+  - Prompt tiếng Việt chuyên sâu quy đổi mọi số tiền về số nguyên VNĐ, chủ động lọc bỏ dòng tiền thừa/tiền khách đưa.
+  - Tự động gắn `id: uuidv4()` cho từng món, tính lại `subtotalAmount`, `calculatedTotal`, và cờ `isDiscrepancy`.
+  - Validate nghiệm ngặt bằng `ParsedReceiptSchema.parse()`.
+  - Test script ([`backend/src/test-ai-scanner.ts`](./backend/src/test-ai-scanner.ts)) kiểm thử thành công 100% các tình huống hóa đơn chuẩn và hóa đơn chênh lệch.
 
 ### 5. Kiểm thử & Đảm bảo chất lượng (Verification)
 - [x] Chạy script kiểm thử khởi tạo đối tượng Document và parse dữ liệu Zod thành công 100%.
 - [x] Chạy script kiểm thử thuật toán Pro-rata và rút gọn nợ (`test-calculator.ts`) đạt 100% tiêu chí nghiệm thu.
+- [x] Chạy script kiểm thử luồng AI Scanner (`test-ai-scanner.ts`) đạt 100% tiêu chí nghiệm thu.
 - [x] Kiểm tra TypeScript compiler (`npx tsc --noEmit`) đạt 0 lỗi.
 
 ---
@@ -100,14 +108,17 @@ Flutter Client Request
   - `netBalance < 0`: **Con nợ** (âm tiền, cần chuyển khoản trả).
   - Cơ chế tham lam: Lấy con nợ lớn nhất trả cho chủ nợ lớn nhất số tiền $M = \min(\text{Chủ nợ}, |\text{Con nợ}|)$ $\rightarrow$ Triệt tiêu nợ bắc cầu $A \rightarrow B \rightarrow C$ thành $A \rightarrow C$ trực tiếp.
 
+### 3. Bản chất của AI Gemini Scanner: "Bộ lọc thông minh & Quy chuẩn hóa"
+* **Loại bỏ rác:** Lược bỏ toàn bộ thông tin thừa (ngày giờ, số bàn, mã số thuế, pass wifi, tiền khách đưa, tiền thối lại).
+* **Lọc thông tin sạch:** Chỉ nhặt đúng tên món ăn, số lượng, đơn giá, phụ phí (thuế VAT, phí dịch vụ, voucher).
+* **Quy chuẩn hóa số tiền:** Chuyển đổi mọi cách viết tắt (*150k, 150.000đ, 150 ngàn*) về **số nguyên VNĐ chuẩn (150000)**.
+* **Cảnh báo sai lệch (`isDiscrepancy`):** Tự động phát hiện khi tổng tiền món cộng phụ phí bị lệch so với số tiền in dưới đáy hóa đơn.
+
 ---
 
 ## 📋 CÁC BƯỚC TIẾP THEO CẦN LÀM (TODO)
 
 ### Giai đoạn 1: Hoàn thiện Backend Core
-- [ ] **Core Business Services còn lại**:
-  - `src/services/aiScanner.service.ts`:
-    - Tích hợp Gemini 1.5 Flash / Gemini Vision (`@google/genai`) bóc tách ảnh hóa đơn thành JSON theo `ParsedReceiptSchema`.
 - [ ] **Middlewares**:
   - `src/middlewares/auth.middleware.ts`: Xác thực JSON Web Token (JWT).
   - `src/middlewares/validate.middleware.ts`: Middleware bọc Zod Schema tự động bắt lỗi VALIDATION_ERROR.
