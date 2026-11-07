@@ -64,9 +64,9 @@
 
 ---
 
-## 🧭 CẨM NANG KIẾN TRÚC & LUỒNG XỬ LÝ (CHEST SHEET)
+## 🧭 CẨM NANG KIẾN TRÚC & LUỒNG XỬ LÝ (CHEAT SHEET)
 
-Trình tự đi qua các folder khi 1 Request gửi từ Flutter tới Server:
+### 1. Trình tự đi qua các folder khi 1 Request gửi từ Flutter tới Server:
 
 ```
 Flutter Client Request
@@ -86,6 +86,19 @@ Flutter Client Request
   ▼
 5. models/        👉 [Két sắt]: Thực thể Mongoose Document lưu trữ dữ liệu vào MongoDB.
 ```
+
+### 2. Tóm tắt 2 Thuật toán cốt lõi:
+
+* **Chia tiền theo tỷ lệ (Pro-rata):**
+  - $B_u$: Tiền món ăn gốc của người $u$.
+  - $E$: Phụ phí ròng = Thuế VAT + Phí phục vụ - Voucher giảm giá.
+  - Phụ phí từng người: $E_u = \text{Math.round}\left(E \times \frac{B_u}{S}\right)$ (Ăn bao nhiêu % thì chịu bấy nhiêu % phụ phí).
+  - Bù sai số tiền lẻ: $\Delta = T - \sum F_u$ được cộng vào người thanh toán (`paidBy`).
+
+* **Rút gọn nợ chéo (Greedy Algorithm):**
+  - `netBalance > 0`: **Chủ nợ** (dương tiền, cần nhận lại).
+  - `netBalance < 0`: **Con nợ** (âm tiền, cần chuyển khoản trả).
+  - Cơ chế tham lam: Lấy con nợ lớn nhất trả cho chủ nợ lớn nhất số tiền $M = \min(\text{Chủ nợ}, |\text{Con nợ}|)$ $\rightarrow$ Triệt tiêu nợ bắc cầu $A \rightarrow B \rightarrow C$ thành $A \rightarrow C$ trực tiếp.
 
 ---
 
