@@ -66,9 +66,13 @@
 
 ### 5. Tầng Middlewares Kiểm soát & An ninh (Mục 1 & 5 Contract)
 - [x] **Error Middleware** ([`backend/src/middlewares/error.middleware.ts`](./backend/src/middlewares/error.middleware.ts)):
-  - Lớp lỗi tùy chỉnh `AppError` kế thừa `Error` chứa `statusCode`, `errorCode` và `errors`.
-  - Bộ bắt lỗi tập trung `errorHandler` chuẩn hóa phản hồi lỗi theo đúng Mục 1 Contract (`VALIDATION_ERROR`, `UNAUTHORIZED`, `NOT_FOUND`, `INTERNAL_SERVER_ERROR`).
+  - Lớp lỗi tùy chỉnh `AppError` kế thừa `Error` chứa `statusCode`, `errorCode` kiểu chặt chẽ `ErrorCode` (loại bỏ `any`) và mảng `errors`.
+  - Bộ bắt lỗi tập trung `errorHandler` chuẩn hóa phản hồi lỗi theo đúng Mục 1 Contract (`VALIDATION_ERROR`, `UNAUTHORIZED`, `FORBIDDEN`, `NOT_FOUND`, `BAD_REQUEST`, `AI_PARSE_FAILED`, `INTERNAL_SERVER_ERROR`).
   - Tự động bóc tách lỗi chi tiết của `ZodError` thành mảng `errors: [{ field, message }]`.
+  - Bắt lỗi JSON body sai cú pháp từ `express.json()` (`entity.parse.failed`) trả về 400 `VALIDATION_ERROR`.
+  - Bắt lỗi Mongoose `CastError` (ID sai định dạng) và Duplicate Key `11000` (email trùng) trả về 400 `BAD_REQUEST`.
+  - Bắt lỗi JWT (`JsonWebTokenError`, `TokenExpiredError`) trả về 401 `UNAUTHORIZED`.
+  - Bảo mật thông tin lỗi hệ thống (500): Trong môi trường production chỉ trả thông báo chung `"Lỗi hệ thống nội bộ"` để tránh rò rỉ cấu trúc DB hoặc đường dẫn server.
 - [x] **Auth Middleware** ([`backend/src/middlewares/auth.middleware.ts`](./backend/src/middlewares/auth.middleware.ts)):
   - Mở rộng kiểu dữ liệu `Express.Request` với thuộc tính `user?: { userId: string; email: string }`.
   - Middleware `requireAuth` đọc và xác thực token JWT từ header `Authorization: Bearer <token>`, tự động ném `AppError(401, '...', 'UNAUTHORIZED')` nếu thiếu hoặc sai token.

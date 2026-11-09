@@ -16,7 +16,7 @@
 {
   "success": false,
   "message": "Mô tả lỗi chi tiết",
-  "errorCode": "VALIDATION_ERROR | AI_PARSE_FAILED | UNAUTHORIZED",
+  "errorCode": "VALIDATION_ERROR | UNAUTHORIZED | FORBIDDEN | NOT_FOUND | BAD_REQUEST | AI_PARSE_FAILED | INTERNAL_SERVER_ERROR",
   "errors": []
 }
 ```

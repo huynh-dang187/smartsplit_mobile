@@ -116,6 +116,50 @@ if (
 }
 console.log("✓ Chuẩn hóa ZodError thành VALIDATION_ERROR kèm chi tiết các trường bị lỗi.");
 
+// 2.3. Lỗi JSON sai cú pháp (entity.parse.failed)
+const resJsonParseErr = createMockResponse();
+errorHandler({ type: "entity.parse.failed" }, {} as Request, resJsonParseErr as Response, (() => {}) as NextFunction);
+if (resJsonParseErr.statusCode !== 400 || resJsonParseErr.body.errorCode !== "VALIDATION_ERROR") {
+  throw new Error("FAIL TEST 2.3: errorHandler không bắt đúng lỗi JSON parse!");
+}
+console.log("✓ Bắt thành công lỗi JSON body sai cú pháp (400 VALIDATION_ERROR).");
+
+// 2.4. Lỗi Mongoose CastError (ID sai format)
+const resCastErr = createMockResponse();
+errorHandler({ name: "CastError", path: "groupId", value: "invalid_id_123" }, {} as Request, resCastErr as Response, (() => {}) as NextFunction);
+if (resCastErr.statusCode !== 400 || resCastErr.body.errorCode !== "BAD_REQUEST") {
+  throw new Error("FAIL TEST 2.4: errorHandler không bắt đúng Mongoose CastError!");
+}
+console.log("✓ Bắt thành công Mongoose CastError (400 BAD_REQUEST).");
+
+// 2.5. Lỗi Mongoose Duplicate Key (Code 11000)
+const resDupErr = createMockResponse();
+errorHandler({ code: 11000, keyPattern: { email: 1 } }, {} as Request, resDupErr as Response, (() => {}) as NextFunction);
+if (resDupErr.statusCode !== 400 || resDupErr.body.errorCode !== "BAD_REQUEST") {
+  throw new Error("FAIL TEST 2.5: errorHandler không bắt đúng Mongoose Duplicate Key!");
+}
+console.log("✓ Bắt thành công Mongoose Duplicate Key 11000 (400 BAD_REQUEST).");
+
+// 2.6. Lỗi JWT Token (JsonWebTokenError & TokenExpiredError)
+const resJwtErr = createMockResponse();
+errorHandler({ name: "JsonWebTokenError" }, {} as Request, resJwtErr as Response, (() => {}) as NextFunction);
+if (resJwtErr.statusCode !== 401 || resJwtErr.body.errorCode !== "UNAUTHORIZED") {
+  throw new Error("FAIL TEST 2.6: errorHandler không bắt đúng JsonWebTokenError!");
+}
+console.log("✓ Bắt thành công JsonWebTokenError (401 UNAUTHORIZED).");
+
+// 2.7. Lỗi 500 ẩn thông tin nhạy cảm trong Production
+const origEnv = process.env.NODE_ENV;
+process.env.NODE_ENV = "production";
+const res500Prod = createMockResponse();
+errorHandler(new Error("Sensitive MongoDB cluster connection string / internal path"), {} as Request, res500Prod as Response, (() => {}) as NextFunction);
+process.env.NODE_ENV = origEnv;
+
+if (res500Prod.statusCode !== 500 || res500Prod.body.message !== "Lỗi hệ thống nội bộ") {
+  throw new Error("FAIL TEST 2.7: Lỗi 500 để lộ thông tin nhạy cảm trong production!");
+}
+console.log("✓ Bảo mật tuyệt đối: Lỗi 500 ẩn thông tin nội bộ trong production (chỉ trả 'Lỗi hệ thống nội bộ').");
+
 console.log("\n=================================================");
 console.log("TEST 3: Kiểm tra cấu hình Upload Middleware (uploadReceipt)");
 console.log("=================================================");

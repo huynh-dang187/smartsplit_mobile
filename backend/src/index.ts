@@ -3,7 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import { connectDB } from "./config/db.js";
 import apiRouter from "./routes/index.js";
-import { errorHandler } from "./middlewares/error.middleware.js";
+import { errorHandler, AppError } from "./middlewares/error.middleware.js";
 
 dotenv.config();
 
@@ -26,7 +26,18 @@ app.get("/health", (req, res) => {
   });
 });
 
-// Middleware xử lý lỗi tập trung (Centralized Error Handler) đặt ở cuối cùng
+// Catch-all route 404 cho các endpoint không tồn tại
+app.use((req, res, next) => {
+  next(
+    new AppError(
+      404,
+      `Đường dẫn ${req.method} ${req.originalUrl} không tồn tại trên hệ thống`,
+      "NOT_FOUND"
+    )
+  );
+});
+
+// Middleware xử lý lỗi tập trung (Centralized Error Handler) đặt ở cuối cùng sau tất cả các route
 app.use(errorHandler);
 
 // Khởi động server khi không phải chế độ test
