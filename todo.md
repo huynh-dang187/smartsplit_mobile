@@ -78,11 +78,24 @@
   - Export middleware `uploadReceipt = upload.single('receipt')`.
 - [x] **Barrel Export Middlewares** ([`backend/src/middlewares/index.ts`](./backend/src/middlewares/index.ts)): Re-export toàn bộ middlewares.
 
-### 6. Kiểm thử & Đảm bảo chất lượng (Verification)
+### 6. Cụm Auth & User Profile Controller & Routes (Mục 1 & 5 Contract)
+- [x] **Auth Controller** ([`backend/src/controllers/auth.controller.ts`](./backend/src/controllers/auth.controller.ts)):
+  - `register`: Xác thực `RegisterSchema`, kiểm tra email trùng lặp (`AppError(400, 'Email đã được sử dụng', 'BAD_REQUEST')`), băm mật khẩu với `bcryptjs` (salt 10), lưu `User` vào MongoDB, ký JWT token hạn 7 ngày chứa `{ userId, email }`, trả về status 201 kèm `{ success: true, message: 'Đăng ký thành công', data: { accessToken, user } }` (bảo mật tuyệt đối, không trả về `passwordHash`).
+  - `login`: Xác thực `LoginSchema`, tìm user theo email, đối chiếu mật khẩu với `bcrypt.compare`, ném `AppError(401, 'Email hoặc mật khẩu không chính xác', 'UNAUTHORIZED')` nếu sai, trả về status 200 kèm `{ success: true, message: 'Đăng nhập thành công', data: { accessToken, user } }`.
+  - `updateProfile`: Lấy `userId` từ `req.user`, xác thực `UpdateProfileSchema`, cập nhật `name`, `avatarUrl`, `bankInfo` qua `findByIdAndUpdate(..., { new: true })`, trả về status 200 kèm thông tin user đã cập nhật.
+  - `sanitizeUser`: Tiện ích làm sạch đối tượng User loại bỏ triệt để `passwordHash` trước khi phản hồi về Client.
+- [x] **Auth & User Routes** ([`backend/src/routes/auth.routes.ts`](./backend/src/routes/auth.routes.ts)):
+  - `POST /api/auth/register` (và alias `/register`) -> `register`
+  - `POST /api/auth/login` (và alias `/login`) -> `login`
+  - `PUT /api/users/profile` -> `requireAuth`, `updateProfile`
+- [x] **Barrel Routes Setup** ([`backend/src/routes/index.ts`](./backend/src/routes/index.ts)): Gắn kết `authRoutes` vào API router tổng quát.
+
+### 7. Kiểm thử & Đảm bảo chất lượng (Verification)
 - [x] Chạy script kiểm thử khởi tạo đối tượng Document và parse dữ liệu Zod thành công 100%.
 - [x] Chạy script kiểm thử thuật toán Pro-rata và rút gọn nợ (`test-calculator.ts`) đạt 100% tiêu chí nghiệm thu.
 - [x] Chạy script kiểm thử luồng AI Scanner (`test-ai-scanner.ts`) đạt 100% tiêu chí nghiệm thu.
 - [x] Chạy script kiểm thử toàn bộ Middlewares (`test-middlewares.ts`) đạt 100% tiêu chí nghiệm thu.
+- [x] Chạy script kiểm thử Auth Controller & Routes (`test-auth-controller.ts`) đạt 100% tiêu chí nghiệm thu (register, login, updateProfile, route mapping, kiểm tra bảo mật `sanitizeUser`).
 - [x] Kiểm tra TypeScript compiler (`npx tsc --noEmit`) đạt 0 lỗi.
 
 ---
@@ -142,15 +155,29 @@ Flutter Client Request
   - `AppError`: Tờ đơn báo cáo sự cố chuyên nghiệp chứa mã HTTP (`statusCode`) và mã lỗi (`errorCode`).
   - `errorHandler`: Đứng ở cuối đường đón mọi lỗi, phân loại (Zod, AppError, Multer, Internal) và đóng gói thành JSON lịch sự theo Mục 1 Contract để app Flutter không bao giờ bị văng (crash).
 
+### 5. Bản chất của Cụm Auth & User Controller: "Quản lý Hộ tịch & Cấp phát Thẻ thông hành"
+* **Đăng ký (`register`):**
+  - Kiểm tra email đã có người đăng ký chưa (chặn trùng 400 `BAD_REQUEST`).
+  - Băm mật khẩu bằng thuật toán 1 chiều `bcryptjs` với độ phức tạp `salt = 10` trước khi lưu vào MongoDB (kể cả admin/hacker lộ DB cũng không xem được pass gốc).
+  - Ký thẻ thông hành JWT có thời hạn 7 ngày chứa `{ userId, email }`.
+  - Dùng `sanitizeUser` tước bỏ trường `passwordHash` trước khi trả dữ liệu về app Flutter.
+* **Đăng nhập (`login`):**
+  - Tìm User theo email.
+  - Dùng `bcrypt.compare` so sánh mật khẩu nhập vào với mã hash trong DB (chống timing attack).
+  - Trả về token JWT mới cùng profile user (loại bỏ `passwordHash`).
+* **Cập nhật hồ sơ (`updateProfile`):**
+  - Nhờ trạm gác `requireAuth` kiểm tra thẻ trước, lấy `req.user.userId` đáng tin cậy.
+  - Cập nhật tên, ảnh đại diện, hoặc thông tin ngân hàng Napas (`bankInfo`) để phục vụ nhận tiền chuyển khoản / tạo mã VietQR.
+
 ---
 
 ## 📋 CÁC BƯỚC TIẾP THEO CẦN LÀM (TODO)
 
 ### Giai đoạn 1: Hoàn thiện Backend Core
 - [ ] **Controllers & Routes**:
-  - Auth: `POST /api/auth/register`, `POST /api/auth/login`, `PUT /api/users/profile`.
-  - Groups: `POST /api/groups`, `GET /api/groups`, `GET /api/groups/:groupId`, `POST /api/groups/:groupId/members`.
-  - Expenses: `POST /api/receipts/scan`, `POST /api/groups/:groupId/expenses`, `POST /api/groups/:groupId/settle`.
+  - [x] Auth: `POST /api/auth/register`, `POST /api/auth/login`, `PUT /api/users/profile`.
+  - [ ] Groups: `POST /api/groups`, `GET /api/groups`, `GET /api/groups/:groupId`, `POST /api/groups/:groupId/members`.
+  - [ ] Expenses: `POST /api/receipts/scan`, `POST /api/groups/:groupId/expenses`, `POST /api/groups/:groupId/settle`.
 - [ ] **Server Entry**:
   - `src/index.ts`: Khởi động Express server, kết nối DB, thiết lập CORS và routes.
 
