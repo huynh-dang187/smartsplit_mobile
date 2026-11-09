@@ -236,3 +236,8 @@ export async function scanReceiptWithAI(
     throw new Error(`AI_PARSE_FAILED: Lỗi khi gọi Gemini Vision AI: ${error.message || error}`);
   }
 }
+
+export const aiScannerService = {
+  scanReceiptWithAI,
+};
+

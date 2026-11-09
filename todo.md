@@ -104,7 +104,20 @@
   - `POST /api/groups/:groupId/members` -> `addMember`
 - [x] **Mount Router Tổng** ([`backend/src/routes/index.ts`](./backend/src/routes/index.ts)): Gắn kết `groupRoutes` vào API router.
 
-### 8. Tài liệu API & Bộ sưu tập Postman (API Docs & Postman Collection)
+### 8. Cụm Hóa Đơn & Thanh Toán Nợ Controller & Routes (Mục 4 & 5 Contract)
+- [x] **Expense Controller** ([`backend/src/controllers/expense.controller.ts`](./backend/src/controllers/expense.controller.ts)):
+  - `scanReceipt`: Kiểm tra `req.file` (chặn 400 `VALIDATION_ERROR` nếu thiếu), gọi `scanReceiptWithAI` bóc tách món, thuế VAT, phụ phí, voucher giảm giá và trả về `ParsedReceipt` (`status 200`).
+  - `createExpense`: Xác thực `CreateExpensePayloadSchema`, kiểm tra nhóm và quyền thành viên (404/403). Gọi `calculateProRataShares` tính `subtotalAmount` và `memberShares`. Lưu Expense mới với `type: 'BILL'`. Cập nhật `netBalance` trong Group: người `paidBy` được cộng `+totalAmount`, từng người trong `memberShares` bị trừ `-finalAmount`. Chạy thuật toán tham lam `simplifyGroupDebts` cập nhật danh sách nợ tối giản `simplifiedDebts` và lưu vào MongoDB. Trả về `status 201` kèm `{ expense, group }`.
+  - `settleDebt`: Xác thực `SettleUpSchema` (`fromUser`, `toUser`, `amount`), chặn tự trả nợ cho chính mình (400), kiểm tra cả 2 người đều thuộc nhóm. Tạo bản ghi Expense với `type: 'SETTLEMENT'`, cập nhật số dư: `fromUser` được `+amount` (giảm nợ), `toUser` bị `-amount` (đã nhận tiền). Chạy lại `simplifyGroupDebts` triệt tiêu nợ và lưu Group. Trả về `status 200` kèm `{ settlement, group }`.
+- [x] **Receipt Routes** ([`backend/src/routes/receipt.routes.ts`](./backend/src/routes/receipt.routes.ts)):
+  - `POST /api/receipts/scan` gắn middleware `requireAuth` và `uploadReceipt` (giới hạn 5MB, lọc ảnh).
+- [x] **Hoàn thiện Routes & Server Entry** ([`backend/src/routes/index.ts`](./backend/src/routes/index.ts) & [`backend/src/index.ts`](./backend/src/index.ts)):
+  - Khởi tạo Express server với `cors()`, `express.json()`, `express.urlencoded()`.
+  - Route kiểm tra tình trạng máy chủ `GET /api/health` trả về `{ success: true, message: 'SmartSplit API is running' }`.
+  - Khớp chuẩn 100% toàn bộ 10 endpoints trong Mục 5 Contract.
+  - Gắn middleware xử lý lỗi tập trung `errorHandler` ở cuối cùng.
+
+### 9. Tài liệu API & Bộ sưu tập Postman (API Docs & Postman Collection)
 - [x] **Tài liệu API chi tiết** ([`api.md`](./api.md)):
   - Liệt kê đầy đủ 10 RESTful API endpoints theo Mục 5 Contract (Auth, Groups, Expenses, Receipts).
   - Quy chuẩn định dạng Request, Response chuẩn và mã lỗi HTTP.
@@ -119,13 +132,15 @@
   - Gồm 3 thư mục request: Auth & User Profile, Groups, Receipts AI & Expenses.
   - Cấu hình sẵn URL, Headers, Body JSON mẫu và Script tự lưu Token.
 
-### 9. Kiểm thử & Đảm bảo chất lượng (Verification)
+### 10. Kiểm thử & Đảm bảo chất lượng (Verification)
 - [x] Chạy script kiểm thử khởi tạo đối tượng Document và parse dữ liệu Zod thành công 100%.
 - [x] Chạy script kiểm thử thuật toán Pro-rata và rút gọn nợ (`test-calculator.ts`) đạt 100% tiêu chí nghiệm thu.
 - [x] Chạy script kiểm thử luồng AI Scanner (`test-ai-scanner.ts`) đạt 100% tiêu chí nghiệm thu.
 - [x] Chạy script kiểm thử toàn bộ Middlewares (`test-middlewares.ts`) đạt 100% tiêu chí nghiệm thu.
-- [x] Chạy script kiểm thử Auth Controller & Routes (`test-auth-controller.ts`) đạt 100% tiêu chí nghiệm thu (register, login, updateProfile, route mapping, kiểm tra bảo mật `sanitizeUser`).
-- [x] Chạy script kiểm thử Group Controller & Routes (`test-group-controller.ts`) đạt 100% tiêu chí nghiệm thu (tạo nhóm, lấy danh sách nhóm, xem chi tiết nhóm kèm expenses, thêm thành viên bằng email, chặn trùng thành viên, chặn người ngoài nhóm).
+- [x] Chạy script kiểm thử Auth Controller & Routes (`test-auth-controller.ts`) đạt 100% tiêu chí nghiệm thu.
+- [x] Chạy script kiểm thử Group Controller & Routes (`test-group-controller.ts`) đạt 100% tiêu chí nghiệm thu.
+- [x] Chạy script kiểm thử Expense Controller & Server Entry (`test-expense-controller.ts`) đạt 100% tiêu chí nghiệm thu (scan receipt, chia tiền Pro-rata, cập nhật nợ, thanh toán trả nợ SettleUp, xóa nợ về 0, GET /api/health).
+- [x] Toàn bộ chuỗi kiểm thử hệ thống đạt 100% tiêu chí nghiệm thu.
 - [x] Kiểm tra TypeScript compiler (`npx tsc --noEmit`) đạt 0 lỗi.
 
 ---
@@ -212,7 +227,22 @@ Flutter Client Request
   - Tìm kiếm bạn bè bằng email chuẩn hóa (`toLowerCase()`).
   - Chặn thêm trùng lặp người đã có trong nhóm (400 `BAD_REQUEST`).
 
-### 7. Cách Test API với Postman Một Chạm (1-Click Testing):
+### 7. Bản chất của Cụm Hóa Đơn & Thanh Toán Nợ: "Trái Tim Tài Chính của SmartSplit"
+* **Bóc tách hóa đơn AI (`scanReceipt`):**
+  - Nhận file ảnh qua bộ lọc Multer (tối đa 5MB, chỉ nhận JPEG/PNG/WEBP/HEIC).
+  - Đưa Buffer vào Gemini Vision AI với cấu trúc Prompt tiếng Việt và Schema JSON cố định để đọc tên món, đơn giá, số lượng, thuế VAT, phí phục vụ, voucher giảm giá.
+* **Chia hóa đơn (`createExpense`):**
+  - Chạy thuật toán Pro-rata phân bổ phụ phí theo tỷ lệ ăn uống của từng người.
+  - Người trả tiền (`paidBy`) được cộng tiền dương vào `netBalance` vì đã ứng trước.
+  - Người ăn bị trừ tiền âm vào `netBalance`.
+  - Thuật toán Greedy tự động tính toán lại đồ thị nợ tối giản `simplifiedDebts`.
+* **Thanh toán nợ (`settleDebt`):**
+  - Con nợ chuyển tiền cho chủ nợ (qua quét VietQR hoặc tiền mặt).
+  - Server tạo bản ghi hóa đơn dạng `SETTLEMENT` để lưu lại lịch sử.
+  - Con nợ được cộng tiền (tiến về 0), chủ nợ bị trừ tiền (tiến về 0).
+  - Danh sách nợ `simplifiedDebts` tự động triệt tiêu và xóa sạch các khoản nợ đã thanh toán.
+
+### 8. Cách Test API với Postman Một Chạm (1-Click Testing):
 * Mở Postman $\rightarrow$ Chọn **Import** $\rightarrow$ Kéo file [`SmartSplit.postman_collection.json`](./SmartSplit.postman_collection.json) vào.
 * Chạy request `1.1 Đăng ký` hoặc `1.2 Đăng nhập`: Script tự động lưu `accessToken` vào biến môi trường `{{accessToken}}`.
 * Toàn bộ các request có bảo mật phía sau (như `PUT /profile`, tạo nhóm, scan bill) tự động được cấp quyền mà không cần copy/paste token thủ công.
@@ -221,13 +251,13 @@ Flutter Client Request
 
 ## 📋 CÁC BƯỚC TIẾP THEO CẦN LÀM (TODO)
 
-### Giai đoạn 1: Hoàn thiện Backend Core
-- [ ] **Controllers & Routes**:
+### Giai đoạn 1: Hoàn thiện Backend Core (ĐÃ HOÀN THÀNH 100% 🎉)
+- [x] **Controllers & Routes**:
   - [x] Auth: `POST /api/auth/register`, `POST /api/auth/login`, `PUT /api/users/profile`.
   - [x] Groups: `POST /api/groups`, `GET /api/groups`, `GET /api/groups/:groupId`, `POST /api/groups/:groupId/members`.
-  - [ ] Expenses: `POST /api/receipts/scan`, `POST /api/groups/:groupId/expenses`, `POST /api/groups/:groupId/settle`.
-- [ ] **Server Entry**:
-  - `src/index.ts`: Khởi động Express server, kết nối DB, thiết lập CORS và routes.
+  - [x] Expenses: `POST /api/receipts/scan`, `POST /api/groups/:groupId/expenses`, `POST /api/groups/:groupId/settle`.
+- [x] **Server Entry**:
+  - [x] `src/index.ts`: Khởi động Express server, kết nối DB, thiết lập CORS, health check `GET /api/health`, và gắn middleware `errorHandler` ở cuối.
 
 ---
 
