@@ -1,6 +1,6 @@
 # SMARTSPLIT — TIẾN ĐỘ DỰ ÁN & TO-DO LIST
 
-> Tài liệu theo dõi tiến độ phát triển hệ thống SmartSplit (Backend Express + TypeScript + MongoDB & Mobile Flutter). Bám sát đặc tả kỹ thuật tại [contract.md](./contract.md).
+> Tài liệu theo dõi tiến độ phát triển hệ thống SmartSplit (Backend Express + TypeScript + MongoDB & Mobile Flutter). Bám sát đặc tả kỹ thuật tại [contract.md](./contract.md) và cẩm nang hướng dẫn Postman tại [api.md](./api.md).
 
 ---
 
@@ -90,7 +90,22 @@
   - `PUT /api/users/profile` -> `requireAuth`, `updateProfile`
 - [x] **Barrel Routes Setup** ([`backend/src/routes/index.ts`](./backend/src/routes/index.ts)): Gắn kết `authRoutes` vào API router tổng quát.
 
-### 7. Kiểm thử & Đảm bảo chất lượng (Verification)
+### 7. Tài liệu API & Bộ sưu tập Postman (API Docs & Postman Collection)
+- [x] **Tài liệu API chi tiết** ([`api.md`](./api.md)):
+  - Liệt kê đầy đủ 10 RESTful API endpoints theo Mục 5 Contract (Auth, Groups, Expenses, Receipts).
+  - Quy chuẩn định dạng Request, Response chuẩn và mã lỗi HTTP.
+  - Hướng dẫn thiết lập Postman Environment (`baseUrl`, `accessToken`, `groupId`).
+  - Script tự động trích xuất JWT Token và lưu vào biến môi trường sau khi Login/Register.
+  - Hướng dẫn upload file ảnh hóa đơn qua form-data với key `receipt`.
+  - Công thức tích hợp hiển thị mã VietQR qua `img.vietqr.io`.
+  - Kịch bản kiểm thử luồng thực tế (End-to-End Walkthrough) 6 bước.
+  - Bảng mã lỗi thường gặp (400, 401, 404, 500) và cách khắc phục.
+- [x] **Bộ sưu tập Postman v2.1** ([`SmartSplit.postman_collection.json`](./SmartSplit.postman_collection.json)):
+  - Định dạng chuẩn Postman Collection v2.1 sẵn sàng Import vào Postman.
+  - Gồm 3 thư mục request: Auth & User Profile, Groups, Receipts AI & Expenses.
+  - Cấu hình sẵn URL, Headers, Body JSON mẫu và Script tự lưu Token.
+
+### 8. Kiểm thử & Đảm bảo chất lượng (Verification)
 - [x] Chạy script kiểm thử khởi tạo đối tượng Document và parse dữ liệu Zod thành công 100%.
 - [x] Chạy script kiểm thử thuật toán Pro-rata và rút gọn nợ (`test-calculator.ts`) đạt 100% tiêu chí nghiệm thu.
 - [x] Chạy script kiểm thử luồng AI Scanner (`test-ai-scanner.ts`) đạt 100% tiêu chí nghiệm thu.
@@ -168,6 +183,11 @@ Flutter Client Request
 * **Cập nhật hồ sơ (`updateProfile`):**
   - Nhờ trạm gác `requireAuth` kiểm tra thẻ trước, lấy `req.user.userId` đáng tin cậy.
   - Cập nhật tên, ảnh đại diện, hoặc thông tin ngân hàng Napas (`bankInfo`) để phục vụ nhận tiền chuyển khoản / tạo mã VietQR.
+
+### 6. Cách Test API với Postman Một Chạm (1-Click Testing):
+* Mở Postman $\rightarrow$ Chọn **Import** $\rightarrow$ Kéo file [`SmartSplit.postman_collection.json`](./SmartSplit.postman_collection.json) vào.
+* Chạy request `1.1 Đăng ký` hoặc `1.2 Đăng nhập`: Script tự động lưu `accessToken` vào biến môi trường `{{accessToken}}`.
+* Toàn bộ các request có bảo mật phía sau (như `PUT /profile`, tạo nhóm, scan bill) tự động được cấp quyền mà không cần copy/paste token thủ công.
 
 ---
 
