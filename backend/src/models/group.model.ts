@@ -14,7 +14,7 @@ export interface ISimplifiedDebt {
 export interface IGroup {
   _id: Types.ObjectId | string;
   name: string;
-  description?: string;
+  description?: string | undefined;
   createdBy: Types.ObjectId | string; // Ref: 'User'
   members: IGroupMember[];
   simplifiedDebts: ISimplifiedDebt[]; // Tự động tính lại mỗi khi thêm Expense hoặc SettleUp

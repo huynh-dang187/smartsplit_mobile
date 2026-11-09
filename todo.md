@@ -90,7 +90,21 @@
   - `PUT /api/users/profile` -> `requireAuth`, `updateProfile`
 - [x] **Barrel Routes Setup** ([`backend/src/routes/index.ts`](./backend/src/routes/index.ts)): Gắn kết `authRoutes` vào API router tổng quát.
 
-### 7. Tài liệu API & Bộ sưu tập Postman (API Docs & Postman Collection)
+### 7. Cụm Quản lý Nhóm Controller & Routes (Mục 5 Contract)
+- [x] **Group Controller** ([`backend/src/controllers/group.controller.ts`](./backend/src/controllers/group.controller.ts)):
+  - `createGroup`: Xác thực `CreateGroupSchema`, tạo Group với `createdBy = req.user.userId`, khởi tạo `members = [{ userId: req.user.userId, netBalance: 0 }]`, `simplifiedDebts = []`. Trả về `status 201`.
+  - `getMyGroups`: Tìm các Group mà `members.userId` chứa `req.user.userId`, populate thông tin `name email avatarUrl`, sắp xếp `updatedAt: -1`. Trả về `status 200`.
+  - `getGroupDetail`: Tìm Group theo `groupId` (chặn 404 nếu không tìm thấy), chặn người ngoài nhóm (403 `FORBIDDEN`). Populate `members.userId`, `simplifiedDebts.fromUser`, `simplifiedDebts.toUser` kèm thông tin tài khoản ngân hàng `bankInfo`. Truy vấn đồng thời danh sách Expense của nhóm (populate `paidBy`, sắp xếp `createdAt: -1`) và trả về `{ group, expenses }` (`status 200`).
+  - `addMember`: Parse `AddMemberSchema` (`email`), kiểm tra quyền thành viên trong nhóm (403), tìm user theo email (chặn 404 nếu chưa đăng ký), kiểm tra nếu user đã trong nhóm (chặn 400 `BAD_REQUEST`). Thêm thành viên mới với `netBalance = 0`, lưu vào DB và trả về nhóm đã cập nhật (`status 200`).
+- [x] **Group Routes** ([`backend/src/routes/group.routes.ts`](./backend/src/routes/group.routes.ts)):
+  - `router.use(requireAuth)` bảo vệ toàn bộ các endpoint nhóm.
+  - `POST /api/groups` -> `createGroup`
+  - `GET /api/groups` -> `getMyGroups`
+  - `GET /api/groups/:groupId` -> `getGroupDetail`
+  - `POST /api/groups/:groupId/members` -> `addMember`
+- [x] **Mount Router Tổng** ([`backend/src/routes/index.ts`](./backend/src/routes/index.ts)): Gắn kết `groupRoutes` vào API router.
+
+### 8. Tài liệu API & Bộ sưu tập Postman (API Docs & Postman Collection)
 - [x] **Tài liệu API chi tiết** ([`api.md`](./api.md)):
   - Liệt kê đầy đủ 10 RESTful API endpoints theo Mục 5 Contract (Auth, Groups, Expenses, Receipts).
   - Quy chuẩn định dạng Request, Response chuẩn và mã lỗi HTTP.
@@ -105,12 +119,13 @@
   - Gồm 3 thư mục request: Auth & User Profile, Groups, Receipts AI & Expenses.
   - Cấu hình sẵn URL, Headers, Body JSON mẫu và Script tự lưu Token.
 
-### 8. Kiểm thử & Đảm bảo chất lượng (Verification)
+### 9. Kiểm thử & Đảm bảo chất lượng (Verification)
 - [x] Chạy script kiểm thử khởi tạo đối tượng Document và parse dữ liệu Zod thành công 100%.
 - [x] Chạy script kiểm thử thuật toán Pro-rata và rút gọn nợ (`test-calculator.ts`) đạt 100% tiêu chí nghiệm thu.
 - [x] Chạy script kiểm thử luồng AI Scanner (`test-ai-scanner.ts`) đạt 100% tiêu chí nghiệm thu.
 - [x] Chạy script kiểm thử toàn bộ Middlewares (`test-middlewares.ts`) đạt 100% tiêu chí nghiệm thu.
 - [x] Chạy script kiểm thử Auth Controller & Routes (`test-auth-controller.ts`) đạt 100% tiêu chí nghiệm thu (register, login, updateProfile, route mapping, kiểm tra bảo mật `sanitizeUser`).
+- [x] Chạy script kiểm thử Group Controller & Routes (`test-group-controller.ts`) đạt 100% tiêu chí nghiệm thu (tạo nhóm, lấy danh sách nhóm, xem chi tiết nhóm kèm expenses, thêm thành viên bằng email, chặn trùng thành viên, chặn người ngoài nhóm).
 - [x] Kiểm tra TypeScript compiler (`npx tsc --noEmit`) đạt 0 lỗi.
 
 ---
@@ -184,7 +199,20 @@ Flutter Client Request
   - Nhờ trạm gác `requireAuth` kiểm tra thẻ trước, lấy `req.user.userId` đáng tin cậy.
   - Cập nhật tên, ảnh đại diện, hoặc thông tin ngân hàng Napas (`bankInfo`) để phục vụ nhận tiền chuyển khoản / tạo mã VietQR.
 
-### 6. Cách Test API với Postman Một Chạm (1-Click Testing):
+### 6. Bản chất của Cụm Quản lý Nhóm: "Sổ bộ Thành viên & Phân quyền Truy cập"
+* **Tạo nhóm (`createGroup`):**
+  - Người gọi tạo nhóm tự động được gắn làm `createdBy` và thành viên đầu tiên trong mảng `members`.
+  - Khởi tạo số dư ban đầu `netBalance = 0` và danh sách nợ rỗng `simplifiedDebts = []`.
+* **Bảo vệ quyền riêng tư nhóm (`getGroupDetail`):**
+  - Chặn ngay kẻ lạ không có tên trong `members` bằng mã lỗi `403 FORBIDDEN`.
+  - Populate thông tin `bankInfo` của cả chủ nợ và con nợ trong `simplifiedDebts` để sẵn sàng hiển thị mã VietQR trên app Flutter.
+  - Tải đồng thời toàn bộ lịch sử hóa đơn `expenses` đã sắp xếp theo thứ tự mới nhất.
+* **Thêm thành viên (`addMember`):**
+  - Yêu cầu người mời phải là thành viên trong nhóm.
+  - Tìm kiếm bạn bè bằng email chuẩn hóa (`toLowerCase()`).
+  - Chặn thêm trùng lặp người đã có trong nhóm (400 `BAD_REQUEST`).
+
+### 7. Cách Test API với Postman Một Chạm (1-Click Testing):
 * Mở Postman $\rightarrow$ Chọn **Import** $\rightarrow$ Kéo file [`SmartSplit.postman_collection.json`](./SmartSplit.postman_collection.json) vào.
 * Chạy request `1.1 Đăng ký` hoặc `1.2 Đăng nhập`: Script tự động lưu `accessToken` vào biến môi trường `{{accessToken}}`.
 * Toàn bộ các request có bảo mật phía sau (như `PUT /profile`, tạo nhóm, scan bill) tự động được cấp quyền mà không cần copy/paste token thủ công.
@@ -196,7 +224,7 @@ Flutter Client Request
 ### Giai đoạn 1: Hoàn thiện Backend Core
 - [ ] **Controllers & Routes**:
   - [x] Auth: `POST /api/auth/register`, `POST /api/auth/login`, `PUT /api/users/profile`.
-  - [ ] Groups: `POST /api/groups`, `GET /api/groups`, `GET /api/groups/:groupId`, `POST /api/groups/:groupId/members`.
+  - [x] Groups: `POST /api/groups`, `GET /api/groups`, `GET /api/groups/:groupId`, `POST /api/groups/:groupId/members`.
   - [ ] Expenses: `POST /api/receipts/scan`, `POST /api/groups/:groupId/expenses`, `POST /api/groups/:groupId/settle`.
 - [ ] **Server Entry**:
   - `src/index.ts`: Khởi động Express server, kết nối DB, thiết lập CORS và routes.
