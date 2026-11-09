@@ -26,8 +26,14 @@ mobile/ios/Flutter/Generated.xcconfig
 mobile/android/local.properties
 mobile/android/.gradle/
 
-# IDEs
+# IDEs & AI Agents
 .vscode/
 .idea/
 *.sublime-project
 *.sublime-workspace
+.agent/
+.agents/
+.claude/
+.cursor/
+.gemini/
+.opencode/
