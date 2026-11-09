@@ -12,8 +12,8 @@ export interface IUser {
   name: string;
   email: string;
   passwordHash: string;
-  avatarUrl?: string;
-  bankInfo?: IBankInfo;
+  avatarUrl?: string | undefined;
+  bankInfo?: IBankInfo | undefined;
   createdAt: Date;
 }
 
