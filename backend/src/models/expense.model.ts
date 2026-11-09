@@ -29,7 +29,7 @@ export interface IExpense {
   title: string; // Tên hóa đơn (VD: "Ăn tối Gogi House" hoặc "Thanh toán nợ")
   type: ExpenseType; // BILL: Hóa đơn chi tiêu | SETTLEMENT: Chuyển khoản trả nợ
   paidBy: Types.ObjectId | string; // Ref: 'User' (Người rút ví trả tiền bill này)
-  receiptImageUrl?: string;
+  receiptImageUrl?: string | undefined;
   items: IExpenseItem[];
   extraCharges: IExtraCharges;
   subtotalAmount: number; // Tổng tiền các món gốc cộng lại
