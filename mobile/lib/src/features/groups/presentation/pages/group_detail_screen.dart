@@ -204,10 +204,18 @@ class _GroupDetailView extends StatelessWidget {
             },
             backgroundColor: AppColors.aiAccent,
             foregroundColor: Colors.white,
-            icon: const Icon(Icons.auto_awesome_rounded, size: 20),
+            icon: const Icon(
+              Icons.auto_awesome_rounded,
+              size: 20,
+              color: AppColors.aiIconGlow,
+            ),
             label: const Text(
               'Quét Hóa Đơn AI',
-              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+              style: TextStyle(
+                fontWeight: FontWeight.w700,
+                fontSize: 14,
+                letterSpacing: 0.2,
+              ),
             ),
           ),
         );
@@ -252,11 +260,11 @@ class _GroupDetailView extends StatelessWidget {
               ListTile(
                 leading: Container(
                   padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: AppColors.aiAccentLight,
+                  decoration: const BoxDecoration(
+                    color: AppColors.primarySurface,
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.camera_alt_rounded, color: AppColors.aiAccent),
+                  child: const Icon(Icons.camera_alt_rounded, color: AppColors.primary),
                 ),
                 title: const Text('Chụp ảnh hóa đơn (Camera)', style: TextStyle(fontWeight: FontWeight.w600)),
                 subtitle: const Text('Gemini Vision AI tự bóc tách món và thuế VAT', style: TextStyle(fontSize: 12)),

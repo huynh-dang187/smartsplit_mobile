@@ -73,10 +73,12 @@ abstract class AppColors {
   static const Color warningText = Color(0xFF92400E);
 
   // --- 10. TRẠNG THÁI NGHIỆP VỤ 5: AI MAGIC & VIETQR ACCENT ---
-  /// Tím ánh điện tử biểu trưng cho tính năng AI Scanner
-  static const Color aiAccent = Color(0xFF6366F1); // Indigo 500
-  static const Color aiAccentLight = Color(0xFFEEF2FF); // Indigo 50
-  static const Color aiAccentDark = Color(0xFF4F46E5); // Indigo 600
+  /// Màu nhận diện tính năng AI Scanner chuẩn Fintech Operate Mode (Deep Slate & Emerald Glow)
+  /// Thay thế cho màu tím Indigo cũ nhằm đảm bảo tính đồng bộ nhận diện thương hiệu và tránh chọi màu
+  static const Color aiAccent = Color(0xFF0F172A); // Slate 900 (High-contrast Fintech Premium)
+  static const Color aiAccentLight = Color(0xFFF1F5F9); // Slate 100
+  static const Color aiAccentDark = Color(0xFF020617); // Slate 950
+  static const Color aiIconGlow = Color(0xFF10B981); // Emerald 500 tạo điểm nhấn AI công nghệ tinh tế
   /// Màu nhận diện thương hiệu VietQR chuẩn Napas
   static const Color vietQrPrimary = Color(0xFF0054A6);
   static const Color vietQrAccent = Color(0xFFF37021);

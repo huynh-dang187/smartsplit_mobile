@@ -139,14 +139,14 @@ class _SplitWorkspaceViewState extends State<_SplitWorkspaceView> {
                     Container(
                       width: 90,
                       height: 90,
-                      decoration: BoxDecoration(
-                        color: AppColors.aiAccentLight,
+                      decoration: const BoxDecoration(
+                        color: AppColors.primarySurface,
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(
                         Icons.auto_awesome_rounded,
                         size: 46,
-                        color: AppColors.aiAccent,
+                        color: AppColors.primary,
                       ),
                     ),
                     AppSpacing.gapVerticalLg,
@@ -173,7 +173,7 @@ class _SplitWorkspaceViewState extends State<_SplitWorkspaceView> {
                       width: 220,
                       child: LinearProgressIndicator(
                         backgroundColor: AppColors.border,
-                        valueColor: AlwaysStoppedAnimation<Color>(AppColors.aiAccent),
+                        valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
                       ),
                     ),
                   ],
