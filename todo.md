@@ -346,16 +346,41 @@ Flutter Client Request
 
 ---
 
-#### 🔹 Bước 5.2: Tầng Presentation Feature Groups (Cubit & Màn hình Nhóm, VietQR)
-- [ ] Xây dựng `GroupListCubit` & `GroupDetailCubit`.
-- [ ] Màn hình Danh sách nhóm (`group_list_screen.dart`).
-- [ ] Màn hình Chi tiết nhóm (`group_detail_screen.dart`).
-- [ ] Modal Bottom Sheet quét mã VietQR (`vietqr_bottom_sheet.dart`).
+#### 🔹 Bước 5.2: Tầng Presentation Feature Groups (Cubit & Màn hình Nhóm, VietQR) — [x] ĐÃ HOÀN THÀNH 🎉
+- [x] **Quản lý trạng thái (`src/features/groups/presentation/cubits/`)**:
+  - `group_list_cubit.dart` & `group_list_state.dart`: `GroupListCubit` quản lý 2 controllers (`name`, `description`), tải danh sách nhóm `fetchMyGroups`, tạo nhóm mới `createGroup` an toàn `isClosed` và callbacks.
+  - `group_detail_cubit.dart` & `group_detail_state.dart`: `GroupDetailCubit` quản lý chi tiết nhóm, lịch sử hóa đơn, chuyển tab (Hóa đơn / Cấn trừ nợ), tính số dư ròng `getMyNetBalance(userId)`, thêm thành viên `addMember`, gạch nợ `settleDebt`.
+- [x] **Giao diện & Widgets chuyên biệt (`src/features/groups/presentation/`)**:
+  - `group_balance_card.dart`: Thể hiện 3 trạng thái nợ WCAG AA (Dương: "Bạn được nhận lại", Âm: "Bạn cần trả" kèm nút VietQR, Bằng 0: "Đã sòng phẳng"), hỗ trợ `onTapCard` mở chi tiết nhóm.
+  - `vietqr_bottom_sheet.dart`: Modal Bottom Sheet chuẩn Napas bo góc 24dp, sinh ảnh VietQR qua `VietQrHelper` với `CachedNetworkImage` shimmer, nút copy STK, và nút xác nhận "Tôi đã chuyển khoản xong" gạch nợ tức thì.
+  - `create_group_bottom_sheet.dart` & `add_member_bottom_sheet.dart`: Dialog đẩy theo bàn phím (`viewInsetsOf`), cho phép tạo nhóm và mời bạn bè qua email.
+  - `group_list_screen.dart`: Màn hình danh sách nhóm hỗ trợ kéo tải lại `RefreshIndicator`, Shimmer loading, Empty state có nút CTA, và AppBar dẫn tới Profile.
+  - `group_detail_screen.dart`: Màn hình chi tiết nhóm với thẻ số dư tổng quan, 2 Tab (Lịch sử hóa đơn `BILL`/`SETTLEMENT` & Danh sách nợ rút gọn Greedy `simplifiedDebts`), FAB nổi bật **"Quét Hóa Đơn AI"**.
+- [x] **Điều hướng & Cấu hình**:
+  - Đăng ký factory `GroupListCubit` và `GroupDetailCubit` trong `get_it.dart`.
+  - Cập nhật Route `groupList` và `groupDetail` trong `app_router.dart`.
+  - Thiết lập `_AppSessionGate` chuyển thẳng vào `GroupListScreen` khi đã đăng nhập.
+- [x] **Kiểm thử tự động & Nghiệm thu**:
+  - `mobile/test/groups_feature_test.dart`: 16 bài kiểm thử toàn diện Cubits và Widgets (render nợ âm/dương/0, sinh mã VietQR, chuyển tab, không overflow).
+  - `flutter analyze`: **0 issues found!**
+  - `flutter test`: **35/35 tests passed (100%)!**
 
 ---
 
-#### 🔹 Bước 5.3: Tầng Presentation Feature Expenses (Cubit & Màn hình SplitWorkspace AI)
-- [ ] Xây dựng `SplitWorkspaceCubit` & `SplitWorkspaceState`.
-- [ ] Màn hình Workspace chia tiền hóa đơn (`split_workspace_screen.dart`).
-- [ ] Banner cảnh báo chênh lệch tiền AI (`discrepancy_warning_banner.dart`).
-- [ ] Thanh tổng kết phân bổ chi phí thành viên (`member_share_bottom_bar.dart`).
+#### 🔹 Bước 5.3: Tầng Presentation Feature Expenses (Cubit & Màn hình SplitWorkspace AI) — [x] ĐÃ HOÀN THÀNH 🎉
+- [x] **Quản lý trạng thái (`src/features/expenses/presentation/cubits/`)**:
+  - `split_workspace_state.dart`: State chuẩn Pro-rata với các getters tính toán Realtime (`subtotalAmount`, `calculatedTotal`, cờ `isDiscrepancy`, kiểm tra tính hợp lệ `isValidToSubmit`, và thuật toán `realtimeMemberShares` phân bổ phụ phí theo tỷ lệ và bù sai số làm tròn $\Delta$ vào người trả tiền `paidByUserId`).
+  - `split_workspace_cubit.dart`: `SplitWorkspaceCubit` quản lý bóc tách hóa đơn AI `scanReceiptImage`, khởi tạo hóa đơn nhập tay `initManualBill`, bật/tắt thành viên cho từng món `toggleMemberForItem`, chọn nhanh cả nhóm `selectAllMembersForItem`, sửa/thêm/xóa món, cập nhật phụ phí (VAT, phí dịch vụ, giảm giá voucher), đổi người trả tiền, và đóng gói `CreateExpensePayload` gửi lên backend `submitExpense`.
+- [x] **Giao diện & Widgets chuyên biệt (`src/features/expenses/presentation/`)**:
+  - `discrepancy_warning_banner.dart`: Banner cảnh báo màu vàng hổ phách hiển thị khi tổng món cộng phụ phí lệch so với số in trên bill do AI nhận diện.
+  - `receipt_item_card.dart`: Thẻ món ăn hiển thị tên, số lượng, đơn giá, tổng tiền, nút sửa/xóa, và danh sách Chips thành viên tương tác cao (touch target >= 44dp, nút chọn nhanh "Cả nhóm").
+  - `member_share_bottom_bar.dart`: Thanh neo cố định ở đáy màn hình hiển thị số tiền nhảy realtime của từng thành viên và nút chính "Lưu & Chia Hóa Đơn".
+  - `split_workspace_screen.dart`: Màn hình Workspace chia tiền hoàn chỉnh gồm hiệu ứng loading Gemini AI, chọn người trả tiền, danh sách món, phụ phí, và thanh neo dưới đáy.
+- [x] **Khớp nối luồng điều hướng & Cấu hình**:
+  - Tích hợp BottomSheet tùy chọn tại nút FAB **"Quét Hóa Đơn AI"** trong `GroupDetailScreen`: Chụp ảnh qua Camera (`ImageSource.camera`), chọn từ Gallery (`ImageSource.gallery`), hoặc tạo hóa đơn nhập tay.
+  - Tự động làm mới danh sách hóa đơn và công nợ nhóm khi lưu hóa đơn thành công và quay lại `GroupDetailScreen`.
+  - Đăng ký factory `SplitWorkspaceCubit` vào `get_it.dart` và Route `splitWorkspace` vào `app_router.dart`.
+- [x] **Kiểm thử tự động & Nghiệm thu**:
+  - `mobile/test/expenses_feature_test.dart`: 10 bài kiểm thử toàn diện toán học Pro-rata khớp 100% Mục 4.1 contract.md, bù sai số $\Delta$, cảnh báo `isDiscrepancy`, validate người ăn, và render UI widgets.
+  - `flutter analyze`: **0 issues found!**
+  - `flutter test`: **45/45 tests passed (100%)!**

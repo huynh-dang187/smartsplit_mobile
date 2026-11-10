@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import '../../features/auth/presentation/pages/login_screen.dart';
 import '../../features/auth/presentation/pages/profile_bank_screen.dart';
 import '../../features/auth/presentation/pages/register_screen.dart';
+import '../../features/expenses/presentation/pages/split_workspace_screen.dart';
+import '../../features/groups/infrastructure/models/group_member_model.dart';
+import '../../features/groups/presentation/pages/group_detail_screen.dart';
+import '../../features/groups/presentation/pages/group_list_screen.dart';
 
 /// Định nghĩa các Route Name và điều hướng màn hình cho toàn bộ ứng dụng SmartSplit.
 abstract class AppRouter {
@@ -30,6 +34,31 @@ abstract class AppRouter {
         return MaterialPageRoute(builder: (_) => const RegisterScreen());
       case profileBank:
         return MaterialPageRoute(builder: (_) => const ProfileBankScreen());
+      case groupList:
+        return MaterialPageRoute(builder: (_) => const GroupListScreen());
+      case groupDetail:
+        final args = settings.arguments;
+        final groupId = args is String
+            ? args
+            : (args is Map ? args['groupId']?.toString() ?? '' : '');
+        return MaterialPageRoute(
+          builder: (_) => GroupDetailScreen(groupId: groupId),
+        );
+      case splitWorkspace:
+        final args = settings.arguments;
+        if (args is Map) {
+          final groupId = args['groupId']?.toString() ?? '';
+          final members = args['groupMembers'] as List<GroupMemberModel>? ?? const [];
+          final imagePath = args['imagePath'] as String?;
+          return MaterialPageRoute(
+            builder: (_) => SplitWorkspaceScreen(
+              groupId: groupId,
+              groupMembers: members,
+              imagePath: imagePath,
+            ),
+          );
+        }
+        return null;
       default:
         return null;
     }
