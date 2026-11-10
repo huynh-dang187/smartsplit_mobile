@@ -265,11 +265,62 @@ Flutter Client Request
 
 ---
 
-### Giai đoạn 2: Phát triển Ứng dụng Di động (Mobile Flutter)
-- [ ] Khởi tạo cấu trúc project Flutter trong thư mục `mobile/`.
-- [ ] Xây dựng tầng Network / API Client (Dio hoặc HTTP client).
-- [ ] Quản lý trạng thái (Riverpod / Bloc).
-- [ ] Màn hình Xác thực: Đăng nhập, Đăng ký kèm nhập thông tin ngân hàng.
-- [ ] Màn hình Danh sách nhóm & Chi tiết nhóm (hiển thị số dư `netBalance`).
-- [ ] Màn hình Scan hóa đơn bằng Camera và Workspace phân chia món (`SplitWorkspaceScreen`).
-- [ ] Màn hình Settle Up: Tự động hiển thị mã VietQR từ link ảnh `img.vietqr.io` để người dùng quét thanh toán nhanh.
+### Giai đoạn 2: Phát triển Ứng dụng Di động (Mobile Flutter - Kiến trúc 4 Trục & Feature-First Cubit)
+
+#### 🔹 Bước 4.1: Hạ tầng Nền tảng & Hệ thống Cốt lõi (Core & Common) — [x] ĐÃ HOÀN THÀNH 🎉
+- [x] **Tài liệu Kiến trúc hệ thống** ([`mobile/ARCHITECTURE.md`](./mobile/ARCHITECTURE.md)):
+  - Định nghĩa kiến trúc 4 trục (`common`, `core`, `features`, `shared`) + Feature-First MVVM + Cubit.
+  - Bộ quy tắc code nghiêm ngặt: Không dùng Equatable/Sealed class cho State, cơ chế `part`/`part of`, kiểm tra `isClosed` an toàn bất đồng bộ, side effects qua callbacks `onSuccess`/`onError`, chuẩn hóa `BaseResult<T>`.
+- [x] **Trục `common/` (Tài nguyên & Tiện ích chung độc lập)**:
+  - `configs/app_config.dart`: `baseUrl: 'http://10.0.2.2:3000/api'`, timeouts mạng.
+  - `constants/app_colors.dart`: Bảng màu Semantic Tokens đạt chuẩn tương phản WCAG AA >= 4.5:1 cho 5 trạng thái nghiệp vụ (Creditor, Debtor, Settled, Discrepancy, AI/VietQR).
+  - `constants/app_spacing.dart`: Hệ thống lưới 4pt/8pt, chuẩn touch target >= 44dp, chiều cao button >= 48dp, bo góc.
+  - `constants/app_theme.dart`: ThemeData Material 3, nút bấm, ô nhập liệu chuẩn UI-UX Pro Max.
+  - `constants/bank_bins.dart`: Danh sách 10 ngân hàng Napas phổ biến tại Việt Nam (VCB, MB, TCB, BIDV, CTG, ACB, VPB, TPB, STB, VIB).
+  - `extensions/context_x.dart` & `num_x.dart`: Truy xuất Theme/MediaQuery nhanh, hiển thị SnackBar, định dạng tiền tệ trực tiếp (`150000.toVnd()`).
+  - `utils/currency_formatter.dart`: Định dạng VNĐ số nguyên (`150.000 đ`).
+  - `utils/vietqr_helper.dart`: Hàm sinh link ảnh VietQR chuẩn Napas theo Mục 6 `contract.md`.
+- [x] **Trục `core/` (Hệ thống cốt lõi dùng chung toàn app)**:
+  - `domain/entities/base_result.dart`: Thực thể phản hồi chuẩn hóa `BaseResult<T>` (`success`, `data`, `message`, `errorCode`).
+  - `domain/enums/bloc_status.dart`: `enum BlocStatus` (`init`, `loading`, `hasData`, `success`, `checking`, `error`, `validateError`, `initial`) kèm extension helpers.
+  - `infrastructure/datasources/local/secured_storage.dart`: Lưu trữ / đọc JWT accessToken và UserModel qua `SharedPreferences`.
+  - `infrastructure/datasources/network/api/restful_request.dart`: Dio client wrapper tự gắn `Authorization: Bearer <token>`, bắt và trích xuất lỗi từ Express backend, hỗ trợ upload ảnh hóa đơn qua MultipartFile.
+  - `infrastructure/model/user_model.dart` & `bank_info_model.dart`: DTO người dùng và tài khoản ngân hàng khớp 100% `contract.md`.
+  - `presentation/blocs/get_it.dart`: Service Locator đăng ký `SecuredStorage`, `RestfulRequest`, `AppCubit`.
+  - `presentation/cubit/app/`: `app_cubit.dart` và `app_state.dart` quản lý phiên đăng nhập và User toàn cục.
+  - `presentation/pages/app.dart`: Root Widget `SmartSplitRootApp` khởi tạo MaterialApp và cổng kiểm tra phiên `_AppSessionGate`.
+  - `presentation/widgets/`: `common_loading.dart` (Shimmer Skeleton), `common_button.dart` (Touch target >= 48dp), `common_error_view.dart` (thông báo lỗi tiếng Việt + nút Thử lại).
+- [x] **Trục `features/` & `shared/` (Sẵn sàng cho các giai đoạn tiếp theo)**:
+  - Khởi tạo paths: `auth_path.dart`, `group_path.dart`, `expense_path.dart`.
+  - Điều hướng: `app_router.dart`.
+  - Widget mẫu: `group_balance_card.dart` dùng `Color.withValues(alpha: ...)`.
+- [x] **Kiểm thử & Chất lượng**:
+  - `flutter analyze`: **0 issues found!**
+  - `flutter test`: **3/3 unit & widget tests passed!**
+
+---
+
+#### 🔹 Bước 4.2: Feature Auth (Đăng nhập, Đăng ký, Cập nhật Ngân hàng Napas)
+- [ ] Xây dựng `IAuthRepositories` & `AuthRepositories`.
+- [ ] Xây dựng `AuthCubit` & `AuthState`.
+- [ ] Màn hình Đăng nhập (`login_screen.dart`).
+- [ ] Màn hình Đăng ký (`register_screen.dart`).
+- [ ] Màn hình Hồ sơ & Tài khoản ngân hàng (`profile_bank_screen.dart`).
+
+---
+
+#### 🔹 Bước 4.3: Feature Groups (Quản lý Nhóm, Số dư Nợ, Trả nợ VietQR)
+- [ ] Xây dựng `IGroupRepositories` & `GroupRepositories`.
+- [ ] Xây dựng `GroupListCubit` & `GroupDetailCubit`.
+- [ ] Màn hình Danh sách nhóm (`group_list_screen.dart`).
+- [ ] Màn hình Chi tiết nhóm (`group_detail_screen.dart`).
+- [ ] Modal Bottom Sheet quét mã VietQR (`vietqr_bottom_sheet.dart`).
+
+---
+
+#### 🔹 Bước 4.4: Feature Expenses (Quét Bill AI Gemini, Chia tiền Pro-rata)
+- [ ] Xây dựng `IExpenseRepositories` & `ExpenseRepositories`.
+- [ ] Xây dựng `SplitWorkspaceCubit` & `SplitWorkspaceState`.
+- [ ] Màn hình Workspace chia tiền hóa đơn (`split_workspace_screen.dart`).
+- [ ] Banner cảnh báo chênh lệch tiền AI (`discrepancy_warning_banner.dart`).
+- [ ] Thanh tổng kết phân bổ chi phí thành viên (`member_share_bottom_bar.dart`).
