@@ -20,7 +20,6 @@ import 'package:smartsplit_mobile/src/features/groups/presentation/cubits/group_
 import 'package:smartsplit_mobile/src/features/groups/presentation/widgets/add_member_bottom_sheet.dart';
 import 'package:smartsplit_mobile/src/features/groups/presentation/widgets/group_balance_card.dart';
 import 'package:smartsplit_mobile/src/features/groups/presentation/widgets/vietqr_bottom_sheet.dart';
-import 'package:smartsplit_mobile/src/shared/router/app_router.dart';
 
 /// Màn hình chi tiết một nhóm: Lịch sử hóa đơn, cấn trừ nợ và tính năng quét VietQR.
 class GroupDetailScreen extends StatelessWidget {

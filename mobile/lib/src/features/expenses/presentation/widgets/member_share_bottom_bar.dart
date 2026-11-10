@@ -58,7 +58,7 @@ class MemberShareBottomBar extends StatelessWidget {
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
                   itemCount: groupMembers.length,
-                  separatorBuilder: (_, __) => AppSpacing.gapHorizontalSm,
+                  separatorBuilder: (context, index) => AppSpacing.gapHorizontalSm,
                   itemBuilder: (context, index) {
                     final member = groupMembers[index];
                     final share = realtimeMemberShares[member.memberId] ?? 0;

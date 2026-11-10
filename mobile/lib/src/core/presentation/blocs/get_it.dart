@@ -3,6 +3,7 @@ import 'package:smartsplit_mobile/src/features/auth/domain/interfaces/i_auth_rep
 import 'package:smartsplit_mobile/src/features/auth/infrastructure/repositories/auth_repositories.dart';
 import 'package:smartsplit_mobile/src/features/expenses/domain/interfaces/i_expense_repositories.dart';
 import 'package:smartsplit_mobile/src/features/expenses/infrastructure/repositories/expense_repositories.dart';
+import 'package:smartsplit_mobile/src/features/expenses/presentation/cubits/split_workspace_cubit.dart';
 import 'package:smartsplit_mobile/src/features/groups/domain/interfaces/i_group_repositories.dart';
 import 'package:smartsplit_mobile/src/features/groups/infrastructure/repositories/group_repositories.dart';
 import 'package:smartsplit_mobile/src/features/groups/presentation/cubits/group_detail_cubit.dart';
@@ -55,5 +56,9 @@ Future<void> initDependencies() async {
 
   getIt.registerFactory<GroupDetailCubit>(
     () => GroupDetailCubit(groupRepositories: getIt<IGroupRepositories>()),
+  );
+
+  getIt.registerFactory<SplitWorkspaceCubit>(
+    () => SplitWorkspaceCubit(expenseRepositories: getIt<IExpenseRepositories>()),
   );
 }

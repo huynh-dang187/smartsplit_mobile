@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:smartsplit_mobile/src/common/constants/app_colors.dart';
 import 'package:smartsplit_mobile/src/common/constants/app_spacing.dart';
 import 'package:smartsplit_mobile/src/common/extensions/num_x.dart';
