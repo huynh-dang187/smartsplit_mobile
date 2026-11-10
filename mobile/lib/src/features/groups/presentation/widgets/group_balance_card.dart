@@ -14,12 +14,16 @@ class GroupBalanceCard extends StatelessWidget {
   final String groupName;
   final int netBalance; // Tiền VNĐ số nguyên
   final VoidCallback onTapSettle;
+  final VoidCallback? onTapCard;
+  final String? subtitle;
 
   const GroupBalanceCard({
     super.key,
     required this.groupName,
     required this.netBalance,
     required this.onTapSettle,
+    this.onTapCard,
+    this.subtitle,
   });
 
   @override
@@ -32,7 +36,7 @@ class GroupBalanceCard extends StatelessWidget {
     final Color statusText = AppColors.getDebtTextColor(netBalance);
     final String statusLabel = AppColors.getDebtStatusText(netBalance);
 
-    return Container(
+    final cardContent = Container(
       margin: const EdgeInsets.symmetric(
         horizontal: AppSpacing.lg,
         vertical: AppSpacing.sm,
@@ -57,21 +61,37 @@ class GroupBalanceCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Expanded(
-                child: Text(
-                  groupName,
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        color: AppColors.textPrimary,
-                        fontWeight: FontWeight.w600,
-                      ) ??
-                      const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      groupName,
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            color: AppColors.textPrimary,
+                            fontWeight: FontWeight.w600,
+                          ) ??
+                          const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textPrimary,
+                          ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if (subtitle != null) ...[
+                      AppSpacing.gapVerticalXs,
+                      Text(
+                        subtitle!,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textSecondary,
+                        ),
                       ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                    ],
+                  ],
                 ),
               ),
+              AppSpacing.gapHorizontalSm,
               Container(
                 padding: AppSpacing.badgePadding,
                 decoration: BoxDecoration(
@@ -132,5 +152,18 @@ class GroupBalanceCard extends StatelessWidget {
         ],
       ),
     );
+
+    if (onTapCard != null) {
+      return InkWell(
+        onTap: () {
+          HapticFeedback.lightImpact();
+          onTapCard!();
+        },
+        borderRadius: AppSpacing.roundedLg,
+        child: cardContent,
+      );
+    }
+
+    return cardContent;
   }
 }

@@ -5,6 +5,8 @@ import 'package:smartsplit_mobile/src/features/expenses/domain/interfaces/i_expe
 import 'package:smartsplit_mobile/src/features/expenses/infrastructure/repositories/expense_repositories.dart';
 import 'package:smartsplit_mobile/src/features/groups/domain/interfaces/i_group_repositories.dart';
 import 'package:smartsplit_mobile/src/features/groups/infrastructure/repositories/group_repositories.dart';
+import 'package:smartsplit_mobile/src/features/groups/presentation/cubits/group_detail_cubit.dart';
+import 'package:smartsplit_mobile/src/features/groups/presentation/cubits/group_list_cubit.dart';
 import '../../infrastructure/datasources/local/secured_storage.dart';
 import '../../infrastructure/datasources/network/api/restful_request.dart';
 import '../cubit/app/app_cubit.dart';
@@ -44,5 +46,14 @@ Future<void> initDependencies() async {
     () => ExpenseRepositories(
       restfulRequest: getIt<RestfulRequest>(),
     ),
+  );
+
+  // 5. Feature Cubits (Factory)
+  getIt.registerFactory<GroupListCubit>(
+    () => GroupListCubit(groupRepositories: getIt<IGroupRepositories>()),
+  );
+
+  getIt.registerFactory<GroupDetailCubit>(
+    () => GroupDetailCubit(groupRepositories: getIt<IGroupRepositories>()),
   );
 }

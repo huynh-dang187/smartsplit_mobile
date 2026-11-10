@@ -346,11 +346,24 @@ Flutter Client Request
 
 ---
 
-#### 🔹 Bước 5.2: Tầng Presentation Feature Groups (Cubit & Màn hình Nhóm, VietQR)
-- [ ] Xây dựng `GroupListCubit` & `GroupDetailCubit`.
-- [ ] Màn hình Danh sách nhóm (`group_list_screen.dart`).
-- [ ] Màn hình Chi tiết nhóm (`group_detail_screen.dart`).
-- [ ] Modal Bottom Sheet quét mã VietQR (`vietqr_bottom_sheet.dart`).
+#### 🔹 Bước 5.2: Tầng Presentation Feature Groups (Cubit & Màn hình Nhóm, VietQR) — [x] ĐÃ HOÀN THÀNH 🎉
+- [x] **Quản lý trạng thái (`src/features/groups/presentation/cubits/`)**:
+  - `group_list_cubit.dart` & `group_list_state.dart`: `GroupListCubit` quản lý 2 controllers (`name`, `description`), tải danh sách nhóm `fetchMyGroups`, tạo nhóm mới `createGroup` an toàn `isClosed` và callbacks.
+  - `group_detail_cubit.dart` & `group_detail_state.dart`: `GroupDetailCubit` quản lý chi tiết nhóm, lịch sử hóa đơn, chuyển tab (Hóa đơn / Cấn trừ nợ), tính số dư ròng `getMyNetBalance(userId)`, thêm thành viên `addMember`, gạch nợ `settleDebt`.
+- [x] **Giao diện & Widgets chuyên biệt (`src/features/groups/presentation/`)**:
+  - `group_balance_card.dart`: Thể hiện 3 trạng thái nợ WCAG AA (Dương: "Bạn được nhận lại", Âm: "Bạn cần trả" kèm nút VietQR, Bằng 0: "Đã sòng phẳng"), hỗ trợ `onTapCard` mở chi tiết nhóm.
+  - `vietqr_bottom_sheet.dart`: Modal Bottom Sheet chuẩn Napas bo góc 24dp, sinh ảnh VietQR qua `VietQrHelper` với `CachedNetworkImage` shimmer, nút copy STK, và nút xác nhận "Tôi đã chuyển khoản xong" gạch nợ tức thì.
+  - `create_group_bottom_sheet.dart` & `add_member_bottom_sheet.dart`: Dialog đẩy theo bàn phím (`viewInsetsOf`), cho phép tạo nhóm và mời bạn bè qua email.
+  - `group_list_screen.dart`: Màn hình danh sách nhóm hỗ trợ kéo tải lại `RefreshIndicator`, Shimmer loading, Empty state có nút CTA, và AppBar dẫn tới Profile.
+  - `group_detail_screen.dart`: Màn hình chi tiết nhóm với thẻ số dư tổng quan, 2 Tab (Lịch sử hóa đơn `BILL`/`SETTLEMENT` & Danh sách nợ rút gọn Greedy `simplifiedDebts`), FAB nổi bật **"Quét Hóa Đơn AI"**.
+- [x] **Điều hướng & Cấu hình**:
+  - Đăng ký factory `GroupListCubit` và `GroupDetailCubit` trong `get_it.dart`.
+  - Cập nhật Route `groupList` và `groupDetail` trong `app_router.dart`.
+  - Thiết lập `_AppSessionGate` chuyển thẳng vào `GroupListScreen` khi đã đăng nhập.
+- [x] **Kiểm thử tự động & Nghiệm thu**:
+  - `mobile/test/groups_feature_test.dart`: 16 bài kiểm thử toàn diện Cubits và Widgets (render nợ âm/dương/0, sinh mã VietQR, chuyển tab, không overflow).
+  - `flutter analyze`: **0 issues found!**
+  - `flutter test`: **35/35 tests passed (100%)!**
 
 ---
 

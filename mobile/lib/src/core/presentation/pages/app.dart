@@ -7,7 +7,7 @@ import 'package:smartsplit_mobile/src/core/presentation/blocs/get_it.dart';
 import 'package:smartsplit_mobile/src/core/presentation/cubit/app/app_cubit.dart';
 import 'package:smartsplit_mobile/src/core/presentation/widgets/common_loading.dart';
 import 'package:smartsplit_mobile/src/features/auth/presentation/pages/login_screen.dart';
-import 'package:smartsplit_mobile/src/features/auth/presentation/pages/profile_bank_screen.dart';
+import 'package:smartsplit_mobile/src/features/groups/presentation/pages/group_list_screen.dart';
 import 'package:smartsplit_mobile/src/shared/router/app_router.dart';
 
 /// Root Widget khởi chạy MaterialApp cho ứng dụng SmartSplit.
@@ -50,8 +50,8 @@ class _AppSessionGate extends StatelessWidget {
           return const LoginScreen();
         }
 
-        // Khi đã đăng nhập: hiển thị màn hình tài khoản/hồ sơ (sẽ kết hợp với BottomNavigation khi hoàn tất Groups)
-        return ProfileBankScreen(user: state.currentUser);
+        // Khi đã đăng nhập: hiển thị màn hình danh sách nhóm chính
+        return const GroupListScreen();
       },
     );
   }
