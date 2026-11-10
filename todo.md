@@ -300,17 +300,53 @@ Flutter Client Request
 
 ---
 
-#### 🔹 Bước 4.2: Feature Auth (Đăng nhập, Đăng ký, Cập nhật Ngân hàng Napas)
-- [ ] Xây dựng `IAuthRepositories` & `AuthRepositories`.
-- [ ] Xây dựng `AuthCubit` & `AuthState`.
-- [ ] Màn hình Đăng nhập (`login_screen.dart`).
-- [ ] Màn hình Đăng ký (`register_screen.dart`).
-- [ ] Màn hình Hồ sơ & Tài khoản ngân hàng (`profile_bank_screen.dart`).
+#### 🔹 Bước 4.2: Tầng Dữ liệu & Hợp đồng Nghiệp vụ 3 Features (Interfaces, Models, Repositories) — [x] ĐÃ HOÀN THÀNH 🎉
+- [x] **Feature 1: Auth** ([`src/features/auth/`](./mobile/lib/src/features/auth/)):
+  - Paths: `auth_path.dart` (`/auth/register`, `/auth/login`, `/users/profile`).
+  - Interface: `i_auth_repositories.dart` (`register`, `login`, `updateProfile`).
+  - Repository: `auth_repositories.dart` (Tự động lưu JWT `accessToken` và `UserModel` vào `SecuredStorage`).
+- [x] **Feature 2: Groups** ([`src/features/groups/`](./mobile/lib/src/features/groups/)):
+  - Paths: `group_path.dart` (`/groups`, `/groups/:id`, `/groups/:id/members`, `/groups/:id/settle`).
+  - Models:
+    + `group_member_model.dart`: Hỗ trợ linh hoạt `userId` dạng String hoặc populated `UserModel` kèm `bankInfo`.
+    + `simplified_debt_model.dart`: Khoản nợ rút gọn chứa `fromUser`, `toUser` (kèm `bankInfo` chủ nợ để sinh VietQR) và `amount`.
+    + `group_model.dart`: Mô hình nhóm hoàn chỉnh, hàm tiện ích `getUserNetBalance`, `getDebtsForUser`.
+    + `group_detail_response_model.dart`: Bọc dữ liệu `{ group, expenses }` trả về từ API.
+  - Interface: `i_group_repositories.dart` (`createGroup`, `getMyGroups`, `getGroupDetail`, `addMemberByEmail`, `settleDebt`).
+  - Repository: `group_repositories.dart`.
+- [x] **Feature 3: Expenses** ([`src/features/expenses/`](./mobile/lib/src/features/expenses/)):
+  - Paths: `expense_path.dart` (`/receipts/scan`, `/groups/:id/expenses`).
+  - Models:
+    + `parsed_receipt_model.dart`: `ParsedReceiptItemModel`, `ExtraChargesModel` (`netExtra`), `ParsedReceiptModel` (cờ cảnh báo `isDiscrepancy`).
+    + `expense_model.dart`: `ExpenseItemModel`, `MemberShareModel`, `ExpenseModel` (`BILL` & `SETTLEMENT`).
+    + `create_expense_payload.dart`: Payload tạo hóa đơn gửi lên server khớp 100% Mục 3.2 `contract.md`.
+  - Interface: `i_expense_repositories.dart` (`scanReceipt`, `createExpense`).
+  - Repository: `expense_repositories.dart` (Upload ảnh qua `FormData` & `MultipartFile.fromFile`).
+- [x] **Service Locator & Kiểm thử tự động**:
+  - Đăng ký `IAuthRepositories`, `IGroupRepositories`, `IExpenseRepositories` vào `get_it.dart`.
+  - Bộ kiểm thử `mobile/test/models_and_repos_test.dart` đạt 100% (6 tests).
+  - `flutter analyze`: **0 issues found!**
+  - `flutter test`: **9/9 tests passed!**
 
 ---
 
-#### 🔹 Bước 4.3: Feature Groups (Quản lý Nhóm, Số dư Nợ, Trả nợ VietQR)
-- [ ] Xây dựng `IGroupRepositories` & `GroupRepositories`.
+#### 🔹 Bước 5.1: Tầng Presentation Feature Auth (Cubit & 3 Màn hình UI) — [x] ĐÃ HOÀN THÀNH 🎉
+- [x] **Quản lý trạng thái (`src/features/auth/presentation/cubits/`)**:
+  - `auth_state.dart`: `final class AuthState` với `status`, `user`, `selectedBank`, `errorMessage`, `obscurePassword`.
+  - `auth_cubit.dart`: Quản lý 5 controllers (`name`, `email`, `password`, `accountNo`, `accountName`), dọn dẹp `dispose()` đầy đủ trong `close()`, kiểm tra `isClosed` trước khi emit, callbacks `onSuccess`/`onError`, đồng bộ tự động `AppCubit`.
+- [x] **Giao diện người dùng (`src/features/auth/presentation/pages/ & widgets/`)**:
+  - `login_screen.dart`: Màn hình Đăng nhập Fintech hiện đại, logo SmartSplit, tagline, toggle mật khẩu >= 44dp, nút CTA loading mượt mà.
+  - `register_screen.dart`: Màn hình Đăng ký tài khoản kèm khối tùy chọn cài đặt VietQR (chọn ngân hàng, số tài khoản, tên chủ tài khoản).
+  - `profile_bank_screen.dart`: Màn hình Hồ sơ & Tài khoản VietQR (xem thông tin, đổi ngân hàng nhận tiền nợ, nút Đăng xuất).
+  - `bank_selector_bottom_sheet.dart`: Modal Bottom Sheet tìm kiếm và chọn nhanh 10 ngân hàng Napas, bo góc 24dp, chống tràn chữ.
+- [x] **Kiểm thử tự động & Nghiệm thu**:
+  - `mobile/test/auth_feature_test.dart`: 10 bài kiểm thử đơn vị & widget (luồng đăng nhập, đăng ký, validate form, render 3 màn hình không lỗi overflow).
+  - `flutter analyze`: **0 issues found!**
+  - `flutter test`: **19/19 tests passed (100%)!**
+
+---
+
+#### 🔹 Bước 5.2: Tầng Presentation Feature Groups (Cubit & Màn hình Nhóm, VietQR)
 - [ ] Xây dựng `GroupListCubit` & `GroupDetailCubit`.
 - [ ] Màn hình Danh sách nhóm (`group_list_screen.dart`).
 - [ ] Màn hình Chi tiết nhóm (`group_detail_screen.dart`).
@@ -318,8 +354,7 @@ Flutter Client Request
 
 ---
 
-#### 🔹 Bước 4.4: Feature Expenses (Quét Bill AI Gemini, Chia tiền Pro-rata)
-- [ ] Xây dựng `IExpenseRepositories` & `ExpenseRepositories`.
+#### 🔹 Bước 5.3: Tầng Presentation Feature Expenses (Cubit & Màn hình SplitWorkspace AI)
 - [ ] Xây dựng `SplitWorkspaceCubit` & `SplitWorkspaceState`.
 - [ ] Màn hình Workspace chia tiền hóa đơn (`split_workspace_screen.dart`).
 - [ ] Banner cảnh báo chênh lệch tiền AI (`discrepancy_warning_banner.dart`).

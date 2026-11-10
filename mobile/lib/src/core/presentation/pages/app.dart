@@ -6,6 +6,9 @@ import 'package:smartsplit_mobile/src/core/domain/enums/bloc_status.dart';
 import 'package:smartsplit_mobile/src/core/presentation/blocs/get_it.dart';
 import 'package:smartsplit_mobile/src/core/presentation/cubit/app/app_cubit.dart';
 import 'package:smartsplit_mobile/src/core/presentation/widgets/common_loading.dart';
+import 'package:smartsplit_mobile/src/features/auth/presentation/pages/login_screen.dart';
+import 'package:smartsplit_mobile/src/features/auth/presentation/pages/profile_bank_screen.dart';
+import 'package:smartsplit_mobile/src/shared/router/app_router.dart';
 
 /// Root Widget khởi chạy MaterialApp cho ứng dụng SmartSplit.
 class SmartSplitRootApp extends StatelessWidget {
@@ -19,6 +22,7 @@ class SmartSplitRootApp extends StatelessWidget {
         title: AppConfig.appName,
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
+        onGenerateRoute: AppRouter.onGenerateRoute,
         home: const _AppSessionGate(),
       ),
     );
@@ -41,36 +45,13 @@ class _AppSessionGate extends StatelessWidget {
           );
         }
 
-        // Tạm thời hiển thị màn hình chào SmartSplit trước khi nối Router các Features
-        return Scaffold(
-          appBar: AppBar(
-            title: const Text('SmartSplit'),
-          ),
-          body: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(
-                  Icons.receipt_long_rounded,
-                  size: 64,
-                  color: Color(0xFF059669),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Chào mừng đến với SmartSplit',
-                  style: Theme.of(context).textTheme.headlineMedium,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  state.isAuthenticated
-                      ? 'Đăng nhập với tư cách: ${state.currentUser?.name}'
-                      : 'Hệ thống cốt lõi (Core & Common) đã sẵn sàng!',
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-              ],
-            ),
-          ),
-        );
+        // Nếu chưa đăng nhập: chuyển tới LoginScreen
+        if (!state.isAuthenticated) {
+          return const LoginScreen();
+        }
+
+        // Khi đã đăng nhập: hiển thị màn hình tài khoản/hồ sơ (sẽ kết hợp với BottomNavigation khi hoàn tất Groups)
+        return ProfileBankScreen(user: state.currentUser);
       },
     );
   }

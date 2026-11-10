@@ -11,6 +11,9 @@ class BankBinItem {
   });
 }
 
+/// Alias thuận tiện cho lựa chọn ngân hàng trong form
+typedef BankOption = BankBinItem;
+
 /// Danh sách 10 ngân hàng phổ biến theo chuẩn Napas phục vụ thanh toán VietQR trong SmartSplit.
 abstract class BankBins {
   static const List<BankBinItem> supportedBanks = [
@@ -66,6 +69,9 @@ abstract class BankBins {
     ),
   ];
 
+  /// Danh sách ngân hàng phổ biến (alias)
+  static const List<BankBinItem> popularVietnameseBanks = supportedBanks;
+
   /// Tìm kiếm ngân hàng theo mã BIN
   static BankBinItem? findByBin(String bin) {
     try {
@@ -86,3 +92,6 @@ abstract class BankBins {
     }
   }
 }
+
+/// Danh sách 10 ngân hàng Napas phổ biến tại Việt Nam (top-level constant)
+const List<BankBinItem> popularVietnameseBanks = BankBins.supportedBanks;

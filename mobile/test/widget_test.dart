@@ -21,7 +21,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('SmartSplit'), findsWidgets);
-    expect(find.text('Chào mừng đến với SmartSplit'), findsOneWidget);
+    expect(find.text('Chia tiền nhóm & Quét hóa đơn AI tự động'), findsOneWidget);
+    expect(find.text('Đăng nhập'), findsWidgets);
   });
 
   test('CurrencyFormatter định dạng tiền VNĐ chuẩn số nguyên', () {

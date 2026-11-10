@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import '../../features/auth/presentation/pages/login_screen.dart';
+import '../../features/auth/presentation/pages/profile_bank_screen.dart';
+import '../../features/auth/presentation/pages/register_screen.dart';
 
 /// Định nghĩa các Route Name và điều hướng màn hình cho toàn bộ ứng dụng SmartSplit.
 abstract class AppRouter {
@@ -18,8 +21,17 @@ abstract class AppRouter {
   static const String splitWorkspace = '/split-workspace';
   static const String expenseDetail = '/expense-detail';
 
-  /// Hàm điều hướng chung (sẽ hoàn thiện khi phát triển từng Feature)
+  /// Điều hướng màn hình tập trung
   static Route<dynamic>? onGenerateRoute(RouteSettings settings) {
-    return null;
+    switch (settings.name) {
+      case login:
+        return MaterialPageRoute(builder: (_) => const LoginScreen());
+      case register:
+        return MaterialPageRoute(builder: (_) => const RegisterScreen());
+      case profileBank:
+        return MaterialPageRoute(builder: (_) => const ProfileBankScreen());
+      default:
+        return null;
+    }
   }
 }
