@@ -1,30 +1,50 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import 'package:smartsplit_mobile/main.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:smartsplit_mobile/src/common/utils/currency_formatter.dart';
+import 'package:smartsplit_mobile/src/common/utils/vietqr_helper.dart';
+import 'package:smartsplit_mobile/src/core/presentation/blocs/get_it.dart';
+import 'package:smartsplit_mobile/src/core/presentation/pages/app.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const SmartSplitApp());
+  setUp(() async {
+    SharedPreferences.setMockInitialValues({});
+    await getIt.reset();
+    await initDependencies();
+  });
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+  tearDown(() async {
+    await getIt.reset();
+  });
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+  testWidgets('SmartSplitRootApp khởi chạy và hiển thị màn hình chính', (WidgetTester tester) async {
+    await tester.pumpWidget(const SmartSplitRootApp());
+    await tester.pumpAndSettle();
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    expect(find.text('SmartSplit'), findsWidgets);
+    expect(find.text('Chia tiền nhóm & Quét hóa đơn AI tự động'), findsOneWidget);
+    expect(find.text('Đăng nhập'), findsWidgets);
+  });
+
+  test('CurrencyFormatter định dạng tiền VNĐ chuẩn số nguyên', () {
+    expect(CurrencyFormatter.formatNumberOnly(150000), '150.000');
+    expect(CurrencyFormatter.formatSignedVnd(150000), contains('+150.000'));
+    expect(CurrencyFormatter.formatSignedVnd(-50000), contains('-50.000'));
+    expect(CurrencyFormatter.parseVnd('150.000 đ'), 150000);
+  });
+
+  test('VietQrHelper sinh URL ảnh VietQR đúng chuẩn Mục 6 contract.md', () {
+    final url = VietQrHelper.generateQrUrl(
+      bankBin: '970436',
+      accountNo: '123456789',
+      amount: 150000,
+      accountName: 'NGUYEN VAN A',
+      fromUserName: 'An',
+      groupName: 'NuongBBQ',
+    );
+
+    expect(url, contains('https://img.vietqr.io/image/970436-123456789-compact2.png'));
+    expect(url, contains('amount=150000'));
+    expect(url, contains('SmartSplit%20An%20thanh%20toan%20NuongBBQ'));
+    expect(url, contains('accountName=NGUYEN%20VAN%20A'));
   });
 }

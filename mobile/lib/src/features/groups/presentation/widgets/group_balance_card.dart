@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
-import '../../../../core/theme/theme.dart';
+import 'package:smartsplit_mobile/src/common/constants/app_colors.dart';
+import 'package:smartsplit_mobile/src/common/constants/app_spacing.dart';
 
 /// Card hiển thị số dư nợ của nhóm trong SmartSplit.
 /// 
