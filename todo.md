@@ -57,7 +57,7 @@
     1. Chia bill 110.000đ cho 3 người (A, B, C): A trả tiền chịu 36.666đ, B chịu 36.667đ, C chịu 36.667đ (Tổng tròn 110.000đ).
     2. Rút gọn nợ bắc cầu A ➔ B ➔ C thành 1 giao dịch trực tiếp: A trả C 100.000đ.
 - [x] **AI Receipt Scanner Service** ([`backend/src/services/aiScanner.service.ts`](./backend/src/services/aiScanner.service.ts)):
-  - Tích hợp SDK `@google/genai` (`GoogleGenAI`, `Type`) với model `gemini-2.5-flash`.
+  - Tích hợp SDK `@google/genai` (`GoogleGenAI`, `Type`) với model `gemini-3.6-flash` (`const MODEL_NAME = process.env.GEMINI_MODEL || "gemini-3.6-flash"`).
   - Hàm `scanReceiptWithAI`: Bóc tách ảnh hóa đơn đa phương thức với `responseMimeType: 'application/json'` và `responseSchema`.
   - Prompt tiếng Việt chuyên sâu quy đổi mọi số tiền về số nguyên VNĐ, chủ động lọc bỏ dòng tiền thừa/tiền khách đưa.
   - Tự động gắn `id: uuidv4()` cho từng món, tính lại `subtotalAmount`, `calculatedTotal`, và cờ `isDiscrepancy`.
@@ -384,3 +384,20 @@ Flutter Client Request
   - `mobile/test/expenses_feature_test.dart`: 10 bài kiểm thử toàn diện toán học Pro-rata khớp 100% Mục 4.1 contract.md, bù sai số $\Delta$, cảnh báo `isDiscrepancy`, validate người ăn, và render UI widgets.
   - `flutter analyze`: **0 issues found!**
   - `flutter test`: **45/45 tests passed (100%)!**
+
+---
+
+### 6. Triển khai Production & Đưa lên Cloud (Giai đoạn 6: Deploy Render.com)
+- [x] **Chuẩn hóa cấu hình Build & Khởi động Backend**:
+  - `backend/tsconfig.json`: Cấu hình `"rootDir": "./src"`, `"outDir": "./dist"`, `"moduleResolution": "nodenext"`, bao gồm `"src/**/*"` và loại trừ các file kiểm thử phát triển (`"src/test-*.ts"`) để tối ưu dung lượng bản build production.
+  - `backend/package.json`: Xác nhận lệnh `"build": "tsc"` biên dịch toàn bộ TypeScript từ `src/` sang `dist/` và lệnh `"start": "node dist/index.js"` khởi chạy Node.js native.
+- [x] **Nghiệm thu Build Production (Pre-flight Build Check)**:
+  - Chạy kiểm thử lệnh `npm run build` trực tiếp tại `backend/`: Hoàn thành với **0 lỗi (exit code 0)**.
+  - Sinh đầy đủ cấu trúc `dist/` (`config`, `controllers`, `middlewares`, `models`, `routes`, `schemas`, `services`, `index.js`), không chứa bất kỳ file test nào.
+  - Xác nhận `dist/index.js` nạp các module ESM và biến môi trường trơn tru.
+- [x] **Đặc tả Biến môi trường & Template mẫu**:
+  - Tạo file `backend/.env.example` mô tả chi tiết 4 biến môi trường cốt lõi cần thiết lập trên Render:
+    1. `PORT`: Cổng dịch vụ (Render tự động gán dynamic port).
+    2. `MONGODB_URI`: Chuỗi kết nối MongoDB Atlas (đã whitelist `0.0.0.0/0`).
+    3. `GEMINI_API_KEY` & `GEMINI_MODEL`: API Key Google GenAI & mô hình xử lý (mặc định: `gemini-3.6-flash`, hỗ trợ override qua `GEMINI_MODEL`).
+    4. `JWT_SECRET`: Khóa bí mật ký mã hóa phiên đăng nhập.

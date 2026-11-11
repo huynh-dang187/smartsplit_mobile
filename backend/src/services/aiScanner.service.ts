@@ -8,7 +8,7 @@ dotenv.config();
 const apiKey = process.env.GEMINI_API_KEY || "";
 const ai = new GoogleGenAI({ apiKey });
 
-/** Model name: mặc định theo hợp đồng là gemini-2.5-flash */
+/** Model name: mặc định sử dụng gemini-3.6-flash (hoặc linh hoạt cấu hình qua biến môi trường GEMINI_MODEL) */
 const MODEL_NAME = process.env.GEMINI_MODEL || "gemini-3.6-flash";
 
 /**
