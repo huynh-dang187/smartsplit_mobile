@@ -387,7 +387,7 @@ Flutter Client Request
 
 ---
 
-### 6. Triển khai Production & Đưa lên Cloud (Giai đoạn 6: Deploy Render.com)
+### 6. Triển khai Production & Đưa lên Cloud (Giai đoạn 6: Deploy Cloud / Docker / Cloud Run)
 - [x] **Chuẩn hóa cấu hình Build & Khởi động Backend**:
   - `backend/tsconfig.json`: Cấu hình `"rootDir": "./src"`, `"outDir": "./dist"`, `"moduleResolution": "nodenext"`, bao gồm `"src/**/*"` và loại trừ các file kiểm thử phát triển (`"src/test-*.ts"`) để tối ưu dung lượng bản build production.
   - `backend/package.json`: Xác nhận lệnh `"build": "tsc"` biên dịch toàn bộ TypeScript từ `src/` sang `dist/` và lệnh `"start": "node dist/index.js"` khởi chạy Node.js native.
@@ -396,8 +396,13 @@ Flutter Client Request
   - Sinh đầy đủ cấu trúc `dist/` (`config`, `controllers`, `middlewares`, `models`, `routes`, `schemas`, `services`, `index.js`), không chứa bất kỳ file test nào.
   - Xác nhận `dist/index.js` nạp các module ESM và biến môi trường trơn tru.
 - [x] **Đặc tả Biến môi trường & Template mẫu**:
-  - Tạo file `backend/.env.example` mô tả chi tiết 4 biến môi trường cốt lõi cần thiết lập trên Render:
-    1. `PORT`: Cổng dịch vụ (Render tự động gán dynamic port).
+  - Tạo file `backend/.env.example` mô tả chi tiết 4 biến môi trường cốt lõi cần thiết lập trên Render / Cloud Run:
+    1. `PORT`: Cổng dịch vụ (Render / Cloud Run tự động gán dynamic port, Cloud Run mặc định 8080).
     2. `MONGODB_URI`: Chuỗi kết nối MongoDB Atlas (đã whitelist `0.0.0.0/0`).
     3. `GEMINI_API_KEY` & `GEMINI_MODEL`: API Key Google GenAI & mô hình xử lý (mặc định: `gemini-3.6-flash`, hỗ trợ override qua `GEMINI_MODEL`).
     4. `JWT_SECRET`: Khóa bí mật ký mã hóa phiên đăng nhập.
+- [x] **Đóng gói Docker Container cho Google Cloud Run**:
+  - `backend/src/index.ts`: Cấu hình cổng động `const PORT = Number(process.env.PORT) || 3000;` và lắng nghe toàn bộ network interfaces trong container `app.listen(PORT, "0.0.0.0", ...)`.
+  - `backend/.dockerignore`: Loại bỏ `node_modules`, `dist`, `.env*`, `*.log`, `src/test-*.ts`, `.git` khỏi ngữ cảnh build Docker.
+  - `backend/Dockerfile`: Áp dụng kỹ thuật **Multi-stage build** chuẩn Production (Stage 1: `builder` với `node:20-alpine` biên dịch TypeScript sang `dist/`; Stage 2: `runner` với `node:20-alpine` chỉ cài production dependencies `--omit=dev`, `EXPOSE 8080`, `CMD ["node", "dist/index.js"]`).
+  - Kiểm thử `npm run build` đạt **0 lỗi**, sẵn sàng build image và deploy lên Google Cloud Run.

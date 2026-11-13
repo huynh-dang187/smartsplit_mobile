@@ -8,7 +8,7 @@ import { errorHandler, AppError } from "./middlewares/error.middleware.js";
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = Number(process.env.PORT) || 3000;
 
 // Middlewares toàn cục
 app.use(cors());
@@ -43,8 +43,8 @@ app.use(errorHandler);
 // Khởi động server khi không phải chế độ test
 if (process.env.NODE_ENV !== "test") {
   connectDB().then(() => {
-    app.listen(PORT, () => {
-      console.log(`[Server] SmartSplit Backend running at http://localhost:${PORT}`);
+    app.listen(PORT, "0.0.0.0", () => {
+      console.log(`[Server] SmartSplit Backend running at http://0.0.0.0:${PORT}`);
       console.log(`[Server] Health check: http://localhost:${PORT}/api/health`);
     });
   });
